@@ -1,13 +1,36 @@
-generator client { provider = "prisma-client-js" }
+generator client {
+  provider = "prisma-client-js"
+}
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-enum Role { BUYER SELLER ADMIN }
-enum ListingStatus { DRAFT PUBLISHED REMOVED }
-enum Condition { NEW USED HANDMADE }
-enum ReportStatus { OPEN RESOLVED DISMISSED }
+enum Role {
+  BUYER
+  SELLER
+  ADMIN
+}
+
+enum ListingStatus {
+  DRAFT
+  PUBLISHED
+  REMOVED
+}
+
+enum Condition {
+  NEW
+  USED
+  HANDMADE
+}
+
+enum ReportStatus {
+  OPEN
+  RESOLVED
+  DISMISSED
+}
+
 
 model User {
   id           String   @id @default(cuid())

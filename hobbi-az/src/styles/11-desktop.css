@@ -1,0 +1,669 @@
+/* ═══════════════════════════════════════════════════════════
+   DESKTOP ONLY (≥1024px): Hover Sidebar + Reels Stage
+   Mobil/planşet (≤1023px) bu blokdan təsirlənmir.
+═══════════════════════════════════════════════════════════ */
+@media (min-width: 1024px) {
+  .topnav {
+    margin-left: var(--sidebar-collapsed);
+    width: calc(100% - var(--sidebar-collapsed));
+    transition: margin-left .35s cubic-bezier(.25,1,.5,1), width .35s cubic-bezier(.25,1,.5,1);
+  }
+  .main-wrap {
+    margin-left: var(--sidebar-collapsed);
+    transition: margin-left .35s cubic-bezier(.25,1,.5,1);
+  }
+
+  /* ── Bütün səhifələrdə: sidebara mouse yaxınlaşıb açılanda məzmun sağa çəkilsin
+     (Parametrlər səhifəsindəki effekt bütün səhifələrə tətbiq olunur) ── */
+  body.sidebar-expanded .topnav,
+  body:has(.sidebar:hover) .topnav,
+  body:has(.sidebar.is-expanded) .topnav {
+    margin-left: var(--sidebar-expanded);
+    width: calc(100% - var(--sidebar-expanded));
+  }
+  body.sidebar-expanded .main-wrap,
+  body:has(.sidebar:hover) .main-wrap,
+  body:has(.sidebar.is-expanded) .main-wrap {
+    margin-left: var(--sidebar-expanded);
+  }
+
+  /* ── Expandable hover sidebar ── */
+  .sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    z-index: 1000;
+    width: var(--sidebar-collapsed);
+    height: 100vh;
+    padding: 0;
+    overflow: visible;
+    border-right: 1px solid var(--outline-var);
+    background: var(--surface-nav);
+    box-shadow: none;
+    transition: width .35s cubic-bezier(.25,1,.5,1), box-shadow .35s cubic-bezier(.25,1,.5,1);
+  }
+  .sidebar::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: -20px;
+    width: 20px;
+    height: 100%;
+    pointer-events: auto;
+  }
+  .sidebar:hover,
+  .sidebar.is-expanded {
+    width: var(--sidebar-expanded);
+    box-shadow: 8px 0 32px rgba(0,0,0,.08);
+  }
+
+  .sidebar-inner {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
+    padding: 1rem .65rem 1.25rem;
+    overflow: hidden;
+  }
+  .sidebar:hover .sidebar-inner,
+  .sidebar.is-expanded .sidebar-inner {
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: none;
+  }
+  .sidebar:hover .sidebar-inner::-webkit-scrollbar,
+  .sidebar.is-expanded .sidebar-inner::-webkit-scrollbar { display: none; }
+
+  .sidebar-top { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: .35rem; }
+
+
+
+  .sidebar-text {
+    opacity: 0;
+    visibility: hidden;
+    width: 0;
+    max-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    transform: translateX(-12px);
+    transition: opacity .2s ease, transform .2s ease, width .2s ease, max-width .2s ease;
+  }
+  .sidebar:hover .sidebar-text,
+  .sidebar.is-expanded .sidebar-text {
+    opacity: 1;
+    visibility: visible;
+    width: auto;
+    max-width: 180px;
+    transform: translateX(0);
+    transition-delay: .12s;
+  }
+
+  .sidebar-cats-scroll {
+    flex: 0 1 auto;
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition: max-height .3s ease, opacity .25s ease;
+  }
+  .sidebar:hover .sidebar-cats-scroll,
+  .sidebar.is-expanded .sidebar-cats-scroll {
+    max-height: 320px;
+    opacity: 1;
+    overflow-y: auto;
+  }
+  .sidebar-cats-list {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height .28s ease;
+  }
+  .sidebar-cats-scroll.is-open .sidebar-cats-list {
+    max-height: 220px;
+  }
+  .sidebar-cats-header {
+    display: flex;
+    align-items: center;
+    gap: .35rem;
+    padding: .5rem .75rem;
+    cursor: pointer;
+  }
+  .sidebar-cats-chevron {
+    margin-left: auto;
+    flex-shrink: 0;
+    transition: transform .2s;
+  }
+  .sidebar-cats-scroll.is-open .sidebar-cats-chevron { transform: rotate(180deg); }
+
+  .sidebar-nav { display: flex; flex-direction: column; gap: .2rem; }
+
+  .sidebar .nav-item {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: .75rem;
+    padding: .7rem;
+    border-radius: 12px;
+    min-height: 48px;
+    font-size: .9rem;
+    overflow: hidden;
+  }
+  .sidebar:hover .nav-item,
+  .sidebar.is-expanded .nav-item {
+    justify-content: flex-start;
+    padding: .7rem .85rem;
+  }
+  .sidebar .nav-item::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%) scaleY(0);
+    width: 4px;
+    height: 24px;
+    border-radius: 0 4px 4px 0;
+    background: var(--primary);
+    transition: transform .25s cubic-bezier(.25,1,.5,1);
+  }
+  .sidebar .nav-item.active::before {
+    transform: translateY(-50%) scaleY(1);
+  }
+  .sidebar .nav-item.active {
+    background: var(--primary-container);
+    color: currentColor;
+    font-weight: 600;
+  }
+  .sidebar .nav-item .nav-icon { flex-shrink: 0; }
+  .sidebar .nav-item .dot {
+    margin-left: auto;
+    opacity: 0;
+    transition: opacity .2s;
+  }
+  .sidebar:hover .nav-item .dot,
+  .sidebar.is-expanded .nav-item .dot { opacity: 1; }
+
+  .sidebar-footer {
+    display: flex;
+    flex-direction: column;
+    gap: .2rem;
+    padding-top: .75rem;
+    border-top: 1px solid var(--outline-var);
+    margin-top: .5rem;
+  }
+  .sidebar-user-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: .65rem;
+    padding: .55rem;
+    border-radius: 12px;
+    margin-bottom: .35rem;
+    cursor: pointer;
+    transition: background .15s;
+  }
+  .sidebar:hover .sidebar-user-row,
+  .sidebar.is-expanded .sidebar-user-row { justify-content: flex-start; padding: .55rem .85rem; }
+  .sidebar-user-row:hover { background: var(--surface-low); }
+  .sidebar-user-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+    border: 1.5px solid var(--outline-var);
+  }
+  .sidebar-user-name {
+    font-size: .85rem;
+    font-weight: 600;
+    color: var(--on-surface);
+  }
+
+  .nav-badge {
+    position: absolute;
+    top: 8px;
+    right: 10px;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: 999px;
+    background: var(--error);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    border: 2px solid var(--surface-nav);
+    pointer-events: none;
+  }
+  .sidebar:hover .nav-badge,
+  .sidebar.is-expanded .nav-badge {
+    top: 6px;
+    right: auto;
+    left: 28px;
+  }
+
+  /* ── Desktop Reels layout ── */
+  #page-video {
+    background: var(--surface, #f5f5f5);
+    min-height: 100vh;
+  }
+  #page-video .topnav {
+    display: flex !important;
+    margin-left: var(--sidebar-collapsed);
+    width: calc(100% - var(--sidebar-collapsed));
+    background: var(--surface-nav) !important;
+    backdrop-filter: blur(12px) !important;
+    border-bottom: 1px solid var(--outline-variant, rgba(0,0,0,.08)) !important;
+    box-shadow: none !important;
+  }
+  #page-video .bottom-nav {
+    display: none !important;
+  }
+  #page-video .video-feed {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: calc(100vh - var(--nav-h));
+    height: calc(100vh - var(--nav-h));
+    padding: 20px 0;
+    scroll-snap-type: y mandatory;
+  }
+  .reels-stage {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 1.25rem;
+    scroll-snap-align: center;
+    scroll-snap-stop: always;
+    flex-shrink: 0;
+    padding: 10px 0;
+    min-height: calc(100vh - var(--nav-h) - 40px);
+  }
+  .reels-nav-arrows {
+    display: flex;
+    flex-direction: column;
+    gap: .75rem;
+    position: absolute;
+    right: calc(50% - 280px);
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 20;
+  }
+  .reels-arrow-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(255,255,255,.12);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,.15);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background .18s, transform .12s;
+  }
+  .reels-arrow-btn:hover { background: rgba(255,255,255,.22); }
+  .reels-arrow-btn:active { transform: scale(.94); }
+
+  .video-frame {
+    position: relative;
+    width: 450px;
+    max-width: min(450px, calc((100vh - 120px) * 9 / 16));
+    aspect-ratio: 9 / 16;
+    max-height: min(800px, calc(100vh - 80px));
+    height: auto;
+    border-radius: 16px;
+    overflow: hidden;
+    background: #0a0a0a;
+    box-shadow: 0 12px 48px rgba(0,0,0,.45);
+    flex-shrink: 0;
+  }
+  .video-frame .video-bg-art,
+  .video-frame .video-gradient,
+  .video-frame .video-info,
+  .video-frame .rating-overlay {
+    border-radius: 16px;
+  }
+  .video-card.reels-desktop {
+    position: relative;
+    width: auto;
+    height: auto;
+    min-height: 0;
+    background: transparent;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    overflow: visible;
+  }
+  .video-card.reels-desktop::after { display: none; }
+  .video-card.reels-desktop .video-sidebar {
+    position: static;
+    bottom: auto;
+    right: auto;
+    padding-bottom: 0;
+    gap: 1.35rem;
+  }
+  .video-card.reels-desktop .video-action-btn {
+    width: 52px;
+    height: 52px;
+    background: rgba(255,255,255,.1);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,.12);
+  }
+  .video-card.reels-desktop .video-action span {
+    font-size: 12px;
+    font-weight: 500;
+    text-align: center;
+    margin-top: 4px;
+    color: rgba(255,255,255,.92);
+  }
+  .video-card.reels-desktop .video-info {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    right: 80px;
+    z-index: 10;
+    padding: 0;
+  }
+  .video-card.reels-desktop .video-gradient {
+    position: absolute;
+    inset: auto 0 0 0;
+    height: 55%;
+    pointer-events: none;
+  }
+  .video-card.reels-desktop .profile-row { margin-bottom: 10px; }
+  .video-card.reels-desktop .video-creator-avatar {
+    width: 36px;
+    height: 36px;
+    font-size: .95rem;
+  }
+  .video-card.reels-desktop .video-creator-name {
+    font-weight: 600;
+    font-size: .9rem;
+  }
+  .video-card.reels-desktop .caption-text {
+    font-size: .88rem;
+    line-height: 1.45;
+    margin-bottom: 10px;
+  }
+  .video-card.reels-desktop .info-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .reels-music-ticker {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+    overflow: hidden;
+    max-width: 100%;
+  }
+  .reels-music-ticker-inner {
+    display: flex;
+    gap: 2rem;
+    white-space: nowrap;
+    animation: reelsMarquee 12s linear infinite;
+    color: rgba(255,255,255,.85);
+    font-size: .8rem;
+    font-weight: 500;
+  }
+  @keyframes reelsMarquee {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+}
+
+@media (min-width: 1024px) {
+  .reels-mobile-sidebar { display: none !important; }
+  .reels-desktop-sidebar { display: flex !important; flex-direction: column; align-items: center; }
+}
+
+@media (max-width: 1023px) {
+  .reels-nav-arrows,
+  .reels-desktop-sidebar { display: none !important; }
+  .reels-stage {
+    display: block;
+    position: relative;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    padding: 0;
+  }
+  .video-frame {
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    max-height: none;
+    aspect-ratio: unset;
+    border-radius: 0;
+    box-shadow: none;
+    position: relative;
+  }
+  .video-card.reels-desktop {
+    position: relative;
+    width: 100%;
+    height: calc(100vh - var(--bot-h));
+    display: block;
+    overflow: hidden;
+    background: #0a0a0a;
+  }
+  @media (min-width: 901px) {
+    .video-card.reels-desktop { height: 100vh; }
+  }
+  .reels-music-ticker { display: none; }
+}
+
+/* ================================================
+   REELS DESKTOP FIX — yalnız min-width: 901px
+   Mövcud heç bir stili dəyişmir, override edir
+   ================================================ */
+@media (min-width: 901px) {
+
+  /* 1. Video feed: flex sütun, snap scroll, görünən sahə */
+  #page-video .video-feed {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    overflow-y: scroll !important;
+    overflow-x: hidden !important;
+    scroll-snap-type: y mandatory !important;
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+    height: calc(100vh - var(--nav-h, 56px)) !important;
+    padding: 0 !important;
+    gap: 0 !important;
+  }
+
+  #page-video .video-feed::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  /* 2. Hər kart snap nöqtəsi — shrink olmur, tam ekran hündürlüyündə */
+  #page-video .video-card.reels-desktop {
+    flex-shrink: 0 !important;
+    width: 100% !important;
+    height: calc(100vh - var(--nav-h, 56px)) !important;
+    min-height: calc(100vh - var(--nav-h, 56px)) !important;
+    scroll-snap-align: start !important;
+    scroll-snap-stop: always !important;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: center !important;
+    overflow: hidden !important;
+    background: #0a0a0a !important;
+    position: relative !important;
+  }
+
+  /* 3. reels-stage: kart içindəki 3 sütunlu layout */
+  #page-video .reels-stage {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 1.5rem !important;
+    width: 100% !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    padding: 20px 0 !important;
+    scroll-snap-align: unset !important;
+  }
+
+  /* 4. video-frame: 9:16 nisbəti, sabit ölçü, kənara daşmır */
+  #page-video .video-frame {
+    flex-shrink: 0 !important;
+    width: min(320px, calc((100vh - var(--nav-h, 56px) - 40px) * 9 / 16)) !important;
+    aspect-ratio: 9 / 16 !important;
+    height: auto !important;
+    max-height: calc(100vh - var(--nav-h, 56px) - 40px) !important;
+    max-width: none !important;
+    position: relative !important;
+    overflow: hidden !important;
+    border-radius: 16px !important;
+    background: #111 !important;
+  }
+
+  /* 5. video-bg-art (placeholder): kartı tam doldursun */
+  #page-video .video-frame .video-bg-art {
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 5rem !important;
+  }
+
+  /* 6. video teqi varsa (real video) */
+  #page-video .video-frame video {
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+  }
+
+  /* 7. Alt gradient overlay — kartın içindədir, düzgün yerləşir */
+  #page-video .video-frame .video-gradient {
+    position: absolute !important;
+    inset: auto 0 0 0 !important;
+    height: 60% !important;
+    background: linear-gradient(
+      to top,
+      rgba(0,0,0,.80) 0%,
+      rgba(0,0,0,.30) 50%,
+      transparent 100%
+    ) !important;
+    pointer-events: none !important;
+    z-index: 2 !important;
+    border-radius: 0 !important;
+  }
+
+  /* 8. video-info: kartın sol-alt hissəsinə yapışır */
+  #page-video .video-frame .video-info {
+    position: absolute !important;
+    bottom: 18px !important;
+    left: 14px !important;
+    right: 14px !important;
+    z-index: 5 !important;
+    padding: 0 !important;
+  }
+
+  /* 9. sağ sidebar (desktop): flex sütun, kartdan kənarda */
+  #page-video .reels-stage .reels-desktop-sidebar {
+    flex-shrink: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 1.4rem !important;
+    padding: 8px 0 !important;
+    align-self: flex-end !important;
+    padding-bottom: 30px !important;
+  }
+
+  /* 10. nav arrows: absolute, kartın sağında */
+  #page-video .reels-nav-arrows {
+    position: fixed !important;
+    right: calc(50% - 260px) !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    z-index: 30 !important;
+  }
+
+}
+
+/* ================================================
+   REELS DESKTOP v2 — topnav gizlə, alt boşluq sıfırla, kart böyüt
+   Yalnız min-width: 901px
+   ================================================ */
+@media (min-width: 901px) {
+
+  /* 1. Reels səhifəsində topnav-ı tamamilə gizlət */
+  body.page-video .topnav,
+  #page-video ~ .topnav,
+  #page-video .topnav {
+    display: none !important;
+  }
+
+  /* 2. video-feed tam viewport hündürlüyünü tutsun (nav olmadığı üçün) */
+  #page-video .video-feed {
+    height: 100vh !important;
+    min-height: 100vh !important;
+    padding: 0 !important;
+    margin-left: var(--sidebar-collapsed, 72px) !important;
+    width: calc(100% - var(--sidebar-collapsed, 72px)) !important;
+  }
+
+  /* 3. Hər kart da tam viewport hündürlüyü */
+  #page-video .video-card.reels-desktop {
+    height: 100vh !important;
+    min-height: 100vh !important;
+  }
+
+  /* 4. reels-stage hündürlüyü tam */
+  #page-video .reels-stage {
+    height: 100vh !important;
+    min-height: 100vh !important;
+    padding: 24px 0 !important;
+  }
+
+  /* 5. Alt ağ çıxıntı — bottom-nav tam gizlə */
+  #page-video ~ .bottom-nav,
+  body.page-video .bottom-nav {
+    display: none !important;
+  }
+
+  /* 6. Kartın altında qalan boş ağ sahəni sıfırla */
+  #page-video {
+    padding-bottom: 0 !important;
+    margin-bottom: 0 !important;
+    background: #000 !important;
+  }
+
+  /* 7. Video frame daha böyük — əvvəlki 320px → 380px */
+  #page-video .video-frame {
+    width: min(420px, calc((100vh - 48px) * 9 / 16)) !important;
+    max-height: calc(100vh - 48px) !important;
+  }
+
+}
+@media (min-width: 901px) {
+  #page-video,
+  #page-video .video-card.reels-desktop,
+  #page-video .reels-stage,
+  #page-video .video-feed {
+    background: var(--surface) !important;
+  }
+
+  #page-video .video-frame {
+    background: #111 !important;
+  }
+}

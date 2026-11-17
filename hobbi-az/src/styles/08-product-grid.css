@@ -1,0 +1,120 @@
+/* ── PRODUCT GRID RESPONSIVE ── */
+.product-grid-masonry {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+  padding: 0;
+}
+
+@media (min-width: 500px) {
+  .product-grid-masonry {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 768px) {
+  .product-grid-masonry {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .product-grid-masonry {
+    grid-template-columns: repeat(4, minmax(180px, 1fr));
+  }
+}
+
+@media (min-width: 1400px) {
+  .product-grid-masonry {
+    grid-template-columns: repeat(5, minmax(200px, 1fr));
+  }
+}
+
+.product-grid-masonry .product-card {
+  margin-bottom: 0;
+  break-inside: avoid;
+  display: flex;
+  width: 100%;
+}
+
+.product-grid-masonry .product-card .pimg,
+.product-grid-masonry .product-card .card-image {
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+}
+
+@media (max-width: 899px) {
+  #create-product-modal.modal-overlay {
+    align-items: flex-end;     
+    padding: 0;                
+  }
+  #create-product-modal .modal-box {
+    max-width: 100%;
+    width: 100%;
+    margin: 0;
+    border-radius: 24px 24px 0 0;  
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+}
+
+@media (max-width: 600px) {
+  .notification-dropdown {
+    
+    position: fixed !important;
+    top: 60px !important;      
+    left: 50% !important;
+    transform: translateX(-50%) !important; 
+    
+   
+    width: 92% !important;   
+    max-width: 400px !important; 
+    
+    
+    right: auto !important;   
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15) !important; 
+    z-index: 9999 !important;   /* Digər elementlərin altında qalmamaq üçün */
+  }
+}
+
+@media (max-width: 899px) {
+  #listing-modal .listing-drop-zone {
+    padding: 1rem 0.5rem !important;
+    margin-bottom: 0.5rem !important;
+  }
+  #listing-modal .listing-drop-icon-wrap {
+    width: 44px;
+    height: 44px;
+    margin-bottom: 0.25rem !important;
+  }
+  #listing-modal .listing-drop-icon-wrap svg {
+    width: 28px;
+    height: 28px;
+  }
+  #listing-modal .listing-drop-title {
+    font-size: 0.75rem !important;
+    margin-bottom: 0 !important;
+  }
+  #listing-modal .listing-drop-sub {
+    font-size: 0.65rem !important;
+  }
+
+  /* Thumbnail (şəkil önizləmə) qutusu - 4 sütunlu, kiçik ölçülü */
+  #listing-modal .upload-preview-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 0.5rem !important;
+  }
+  #listing-modal .upload-preview-item,
+  #listing-modal .listing-thumb-add {
+    aspect-ratio: 1 / 1;
+    border-radius: 8px;
+  }
+  #listing-modal .listing-thumb-add span {
+    font-size: 0.6rem;
+  }
+  #listing-modal .listing-thumb-add svg {
+    width: 20px;
+    height: 20px;
+  }
+}
