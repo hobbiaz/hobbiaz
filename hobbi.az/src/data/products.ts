@@ -1,9 +1,9 @@
 import type { Product } from "@/types";
 
-/** Demo catalogue carried over from the legacy prototype. */
+/** Offline demo catalogue from the legacy prototype; used when the API/database is unavailable, and by the seed. */
 export const PRODUCTS: Product[] = [
   {
-    "id": 0,
+    "id": "demo-0",
     "title": "Gümüşü Minimalist Sırğalar",
     "price": "45",
     "oldPrice": "89",
@@ -22,7 +22,7 @@ export const PRODUCTS: Product[] = [
     "desc": "Gümüş ərintilərdən əl ilə hazırlanmış minimalist sırğalar."
   },
   {
-    "id": 1,
+    "id": "demo-1",
     "title": "Dəri Üzlük (Sifarişlə)",
     "price": "32",
     "oldPrice": "58",
@@ -41,7 +41,7 @@ export const PRODUCTS: Product[] = [
     "desc": "Sifarişlə hazırlanan natürel dəri üzlük."
   },
   {
-    "id": 2,
+    "id": "demo-2",
     "title": "Taxta Masaüstü Düzənləyici",
     "price": "28",
     "oldPrice": "45",
@@ -60,7 +60,7 @@ export const PRODUCTS: Product[] = [
     "desc": "Qoz ağacından hazırlanmış masaüstü düzənləyici."
   },
   {
-    "id": 3,
+    "id": "demo-3",
     "title": "Rəngli Keramika Fincanlar",
     "price": "18",
     "oldPrice": "35",
@@ -79,7 +79,7 @@ export const PRODUCTS: Product[] = [
     "desc": "Əl ilə şəkilləndirilmiş unikal rəngarəng sırlı keramika fincanlar."
   },
   {
-    "id": 4,
+    "id": "demo-4",
     "title": "Əl İşi Macramé",
     "price": "55",
     "oldPrice": "90",
@@ -98,7 +98,7 @@ export const PRODUCTS: Product[] = [
     "desc": "Premium pambıq ipindən hazırlanmış divar dekorasiyası."
   },
   {
-    "id": 5,
+    "id": "demo-5",
     "title": "Akvarel Çiçək Tablosu",
     "price": "80",
     "oldPrice": "130",
@@ -117,7 +117,7 @@ export const PRODUCTS: Product[] = [
     "desc": "Rəssam Leyla tərəfindən əl ilə çəkilmiş A3 formatlı akvarel tablosu."
   },
   {
-    "id": 6,
+    "id": "demo-6",
     "title": "Abstrakt Kətan (Sifarişlə)",
     "price": "120",
     "oldPrice": "190",
@@ -136,7 +136,7 @@ export const PRODUCTS: Product[] = [
     "desc": "Müştəri tələbinə uyğun abstrakt kətan rəsm. Çatdırılma 7–10 gün."
   },
   {
-    "id": 7,
+    "id": "demo-7",
     "title": "Minimal Keramika Vaza",
     "price": "35",
     "oldPrice": "62",
@@ -155,7 +155,7 @@ export const PRODUCTS: Product[] = [
     "desc": "Skandinav üslubunda minimal dizaynlı ağ keramika vaza."
   },
   {
-    "id": 8,
+    "id": "demo-8",
     "title": "Ağac Çərçivə Güzgü",
     "price": "42",
     "oldPrice": "75",
@@ -174,7 +174,7 @@ export const PRODUCTS: Product[] = [
     "desc": "Əl işi ağac çərçivəli divar güzgüsü."
   },
   {
-    "id": 9,
+    "id": "demo-9",
     "title": "İpək Boyunbağı Dəsti",
     "price": "68",
     "oldPrice": "110",
@@ -194,4 +194,4 @@ export const PRODUCTS: Product[] = [
   }
 ];
 
-export const getProduct = (id: number) => PRODUCTS.find((p) => p.id === id);
+export const getProduct = (id: string) => PRODUCTS.find((p) => p.id === id);

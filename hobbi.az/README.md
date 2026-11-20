@@ -1,65 +1,101 @@
-# hobbi.az — Next.js + Prisma + PostgreSQL
+# hobbi.az: Next.js + Prisma + PostgreSQL
 
-Azərbaycan hobbi/əl işi bazarı. Stack: Next.js 15 (App Router), React 19, strict TypeScript, Prisma, PostgreSQL, Zod, jose (JWT cookie sessiyası) + bcryptjs, Vitest.
+Azərbaycan əl işi və hobbi bazarı. Stack: Next.js 15 (App Router), React 19, strict TypeScript, Prisma 6, PostgreSQL, Zod, jose (JWT cookie sessiyası), bcryptjs, Vitest.
 
-> **Status:** `legacy/hobbi_az_ESAS_BUDUR_SİLME_.html` dizaynı tam olaraq React komponentlərinə köçürülüb. `typecheck`, `lint`, `test` və `build` xətasız keçir. Frontend hələlik demo data ilə işləyir (`src/data/`) və API-yə qoşulmayıb. Backend (API + Prisma) əvvəlki kimidir, işə salmaq üçün PostgreSQL lazımdır.
+Dizayn `legacy/hobbi_az_ESAS_BUDUR_SİLME_.html`-dən React komponentlərinə köçürülüb və tam olaraq API/bazaya bağlıdır:
+- mağaza qeydiyyatı (e-poçt OTP);
+- giriş və şifrə bərpası;
+- elan yerləşdirmə (şəkil yükləmə ilə);
+- axtarış və filtrlər;
+- sevimlilər, rəylər və ulduz reytinqi;
+- sifarişlər (satıcı qəbul edir və ya rədd edir);
+- mesajlaşma, bildirişlər;
+- şikayətlər və admin paneli.
 
-## Quraşdırma
+**Canlıya çıxarmaq:** [DEPLOY.md](DEPLOY.md) (Neon, Vercel, Cloudflare R2, Resend, Upstash, domen).
+
+## Lokal işə salmaq
+
 ```bash
 npm install
-npm run dev                 # http://localhost:3000 — dizayn DB olmadan da açılır
+npm run dev                 # http://localhost:3000
 ```
-API və DB üçün:
+
+- **Baza olmadan:** sayt açılır və **demo rejimdə** işləyir (nümunə məhsullar, yuxarıda "Demo rejim" qeydi). Qeydiyyat, sifariş və mesajlar üçün baza lazımdır.
+- **Baza ilə:** `.env.example`-ı `.env`-ə kopyalayın, `DATABASE_URL`/`DIRECT_URL` (məs. Neon `dev` branch) və `AUTH_SECRET` doldurun, sonra:
+
 ```bash
-cp .env.example .env        # DATABASE_URL, AUTH_SECRET, SEED_DEMO_PASSWORD doldurun
-npm run db:deploy           # prisma/migrations/ altındakı migration-ları tətbiq edir
-npm run db:seed
+npm run db:deploy           # cədvəllər (prisma/migrations)
+npm run db:seed             # 7 demo mağaza, 10 məhsul, demo alıcı (+ admin)
+npm run dev
 ```
-Yoxlamalar: `npm run typecheck && npm run lint && npm test && npm run build`
 
-## Mühit dəyişənləri
-`DATABASE_URL`, `AUTH_SECRET` (32+ simvol), `APP_ORIGIN`, `UPLOAD_DIR`, `SEED_DEMO_PASSWORD`, `SEED_ADMIN_EMAIL`/`SEED_ADMIN_PASSWORD` (admin yalnız ikisi də verilərsə yaranır; kodda admin parolu yoxdur), `SEED_DEMO_REEL_URL` (istəyə bağlı: demo reel üçün video linki).
+**Development-də OTP:** `RESEND_API_KEY` yoxdursa, təsdiq kodu e-poçta getmir. Kod ekranda "Test rejimi: kod 123456" kimi və server konsolunda görünür.
 
-Sxemi dəyişəndə: `npm run db:migrate -- --name <ad>` yeni migration yaradır. Bazanı heç vaxt əl ilə dəyişməyin.
-
-DB qoşulmayanda `/api/*` 503 "Verilənlər bazası əlçatan deyil" qaytarır (server logunda səbəb yazılır).
+**Yoxlamalar:** `npm run typecheck && npm run lint && npm test && npm run build`
 
 ## Səhifələr
-| Route | Komponent | Orijinalda |
-|---|---|---|
-| `/` | `components/home/HomeFeed` | `#page-home` (kateqoriya çipləri, məhsul kartları, trend mağazalar) |
-| `/reels` | `components/reels/ReelsFeed` | `#page-video` (ulduz reytinqi, rəylər, paylaş, ⋯ menyu) |
-| `/search` | `components/search/SearchPage` | `#page-search` |
-| `/messages` | `components/messages/MessagesPage` | `#page-messages` |
-| `/profile` | `components/profile/ProfilePage` | `#page-profile` |
-| `/settings` | `components/settings/SettingsPage` | `#page-settings` + mobil `sub-panel`-lər |
-| `/dev/*` | köhnə sadə şablonlar | API-ni yoxlamaq üçün (dizayn deyil) |
 
-Bütün səhifələrdə açılan overlay-lər `components/overlays/GlobalOverlays.tsx`-də bir dəfə mount olunur:
-- mağaza qeydiyyatı (9 addım, OTP, şifrə gücü, region, konfetti): `auth/StoreOnboarding`
-- filtr: `overlays/FilterModal`
-- yeni elan (4 addım): `overlays/ListingModal`
-- məhsul hazırlat: `overlays/CreateProductModal`
-- paylaş: `overlays/ShareModal`
-- axtarış (mobil tam ekran + desktop panel): `search/SearchOverlay`
-- məhsul detalı (qalereya, satıcı paneli, oxşar məhsullar, rəylər): `product/ProductDetailPanel`
+| Route | Nə edir |
+|---|---|
+| `/` | Lent: kateqoriya (`?cat=resm`), axtarış (`?q=xalça`), "Daha çox", məhsul detalı (`#producto=<id>`) |
+| `/s/<slug>` | Mağazanın public səhifəsi (paylaşılan link) |
+| `/profile` | Mağazam: elanlarım (dərc et/gizlət/sil), sevimlilər, gələn sifarişlər / sifarişlərim |
+| `/messages` | Söhbətlər + yazışma (`?c=<id>`), 5 saniyədə bir yenilənir |
+| `/settings` | Hesab məlumatları, tema, dil, çıxış |
+| `/admin` | Statistika, şikayətlər, moderasiya (yalnız `role=ADMIN`) |
+| `/reels`, `/search` | Dizayn səhifələri (reels hələ demo datadır) |
+
+## API (qısa)
+
+| Bölmə | Endpoint-lər |
+|---|---|
+| Giriş və hesab | `POST /api/auth/otp`, `/api/auth/otp/verify`, `/api/auth/register`, `/api/auth/login`, `/api/auth/logout`, `/api/auth/password-reset` |
+| Profil | `GET/PATCH /api/me` |
+| Mağaza | `POST/PATCH /api/store`, `GET /api/stores/check?name=`, `GET /api/stores/<slug>` |
+| Elanlar | `GET/POST /api/listings` (`?owner=me`), `GET/PATCH/DELETE /api/listings/<id>`, `GET/POST/PATCH /api/listings/<id>/reviews` |
+| Fayllar | `POST /api/upload`, `GET /api/media/<key>` |
+| Sevimlilər | `GET/POST /api/favorites` |
+| Sifarişlər | `GET/POST /api/orders`, `PATCH /api/orders/<id>` |
+| Mesajlar | `GET/POST /api/conversations`, `GET/POST /api/conversations/<id>/messages` |
+| Bildirişlər | `GET/POST /api/notifications` |
+| Şikayət və admin | `POST /api/reports`, `GET /api/admin/stats`, `GET /api/admin/reports`, `PATCH /api/admin/reports/<id>`, `PATCH /api/admin/listings/<id>` |
+| Nəzarət | `GET /api/health` (uptime yoxlaması) |
+
+Təhlükəsizlik:
+- Bütün dəyişdirən sorğular üçün same-origin yoxlaması.
+- Sessiya httpOnly JWT cookie-də saxlanır, rol hər dəfə bazadan oxunur.
+- Şifrələr bcrypt ilə saxlanır.
+- OTP kodunun yalnız HMAC-ı saxlanır, 10 dəqiqə etibarlıdır, 5 cəhd limiti var.
+- Sorğu limitləri (Upstash və ya yaddaş).
+- Şəkil tipi magic bytes ilə yoxlanır.
+- Təhlükəsizlik başlıqları.
 
 ## Quruluş
-- `src/styles/` — orijinal CSS bölmələrə bölünüb (`01-base` … `14-product-detail`). Sıra vacibdir, `index.css` bu sıranı saxlayır. Sinif adları orijinaldakı kimidir, ona görə görünüş eynidir.
-- `src/components/icons/` — orijinal markup-dan çıxarılmış 166 SVG ikon (avtomatik generasiya olunub).
-- `src/providers/UIProvider.tsx` — qlobal UI vəziyyəti: toast, tema/dil, kateqoriya filtri, aktiv modal, məhsul detalı stack-i. Komponentlərdə `useUI()` ilə istifadə olunur.
-- `src/data/` — demo data (məhsullar, reels, mesajlar, bildirişlər, parametrlər).
-- `src/lib/` — auth, validasiya (Zod), filtr məntiqi (`filters.ts`), şifrə gücü (`password.ts`), məhsul detal modeli, localStorage köməkçiləri, storage abstraksiyası.
-- `src/app/api/` — REST marşrutları; `prisma/` — schema + seed; `tests/` — Vitest.
-- `legacy/hobbi_az_ESAS_BUDUR_SİLME_.html` — köçürmənin mənbəyi olan orijinal dizayn (köhnə `index.html`/`style.css`/`javascript.js` repo kökündəki `hobbi_az_original/`-dadır).
 
-`localStorage` açarları: `theme`, `hobbi_lang`, `hobbi_profile`, `rating_<id>`, `pd_ad_data`, `hobbi_favorites` (bəyənilən məhsullar). `isAdmin` yalnız development-də reklam redaktəsini göstərir, production-da heç nə vermir.
+- `src/providers/UIProvider.tsx`: qlobal vəziyyət:
+  - sessiya;
+  - API və demo rejimi (`backend`);
+  - lent, keş, sevimlilər;
+  - bildirişlər;
+  - modallar, məhsul paneli.
+- `src/lib/`: server və client köməkçiləri:
+  - `auth`, `otp`, `email` (Resend);
+  - `storage` (lokal disk və ya R2), `rate-limit` (yaddaş və ya Upstash), `env` (başlanğıcda yoxlama);
+  - `listing-dto` (bazadakı elanı UI `Product` formatına çevirir);
+  - `api-client`, `validators`.
+- `src/hooks/useProductActions.ts`: "Maraqlan", "Sifariş et", "Şikayət et".
+- `src/styles/`: orijinal CSS bölmələrə bölünüb. Sinif adları orijinaldakı kimidir.
+- `src/data/`: offline demo kataloqu (həm də seed üçün mənbə).
+- `prisma/`: sxem, migration-lar, seed.
 
-URL-lər: `/?cat=resm` (kateqoriya), `/?q=xalça` (axtarış), `#producto=12` (məhsul detalı) — hamısı paylaşıla və yenilənə bilər.
+Sxemi dəyişəndə `npm run db:migrate -- --name <ad>` yeni migration yaradır. Bazanı əl ilə dəyişməyin.
 
-## Növbəti addımlar
-- Frontend-i API-yə qoşmaq: `src/data/` əvəzinə `/api/listings`, `/api/reels`, `/api/conversations`, `/api/favorites`, qeydiyyat üçün `/api/auth/*`.
-- Admin, real mesajlaşma, profil redaktəsinin backend-ə yazılması.
-- E-poçt/SMS OTP doğrulama, şifrə sıfırlama. Rate limit hazırda yaddaşdadır (bir server üçün); bir neçə instansda Redis/Upstash lazımdır.
-- Dil seçimi (AZ/RU) yadda qalır, amma tərcümələr hələ yoxdur.
-- Production şəkil saxlama: `StorageProvider` interfeysini (`src/lib/storage.ts`) S3/R2 ilə implement etmək.
+## Hələ edilməyənlər
+
+- SMS ilə OTP: telefon nömrəsi saxlanılır, kod isə e-poçtla gəlir. Yerli SMS provayderi seçiləndə əlavə olunacaq.
+- Onlayn ödəniş: sifariş hələlik "razılaşma ilə" işləyir.
+- Reels: video yükləmə yoxdur, səhifə demo datadır.
+- Rus dili: seçim yadda qalır, tərcümələr yoxdur.
+- Real-time mesajlar: indi polling işləyir, SSE/WebSocket yoxdur.
+- Şəkillərin `next/image` ilə optimallaşdırılması.

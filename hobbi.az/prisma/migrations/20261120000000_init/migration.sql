@@ -13,6 +13,12 @@ CREATE TYPE "Condition" AS ENUM ('NEW', 'USED', 'HANDMADE');
 -- CreateEnum
 CREATE TYPE "ReportStatus" AS ENUM ('OPEN', 'RESOLVED', 'DISMISSED');
 
+-- CreateEnum
+CREATE TYPE "OtpPurpose" AS ENUM ('SIGNUP', 'RESET');
+
+-- CreateEnum
+CREATE TYPE "OrderStatus" AS ENUM ('PENDING', 'ACCEPTED', 'REJECTED', 'COMPLETED', 'CANCELLED');
+
 -- CreateTable
 CREATE TABLE "User" (
     "id" TEXT NOT NULL,
@@ -22,11 +28,47 @@ CREATE TABLE "User" (
     "phone" TEXT,
     "city" TEXT,
     "bio" TEXT,
+    "avatarUrl" TEXT,
     "role" "Role" NOT NULL DEFAULT 'BUYER',
     "isDemo" BOOLEAN NOT NULL DEFAULT false,
+    "emailVerifiedAt" TIMESTAMP(3),
+    "notificationsSeenAt" TIMESTAMP(3),
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "User_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Store" (
+    "id" TEXT NOT NULL,
+    "ownerId" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "slug" TEXT NOT NULL,
+    "categorySlug" TEXT NOT NULL,
+    "region" TEXT NOT NULL DEFAULT 'Bakı',
+    "avatarUrl" TEXT,
+    "bio" TEXT,
+    "phone" TEXT,
+    "instagram" TEXT,
+    "tiktok" TEXT,
+    "isDemo" BOOLEAN NOT NULL DEFAULT false,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "Store_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "OtpCode" (
+    "id" TEXT NOT NULL,
+    "email" TEXT NOT NULL,
+    "purpose" "OtpPurpose" NOT NULL,
+    "codeHash" TEXT NOT NULL,
+    "attempts" INTEGER NOT NULL DEFAULT 0,
+    "expiresAt" TIMESTAMP(3) NOT NULL,
+    "consumedAt" TIMESTAMP(3),
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "OtpCode_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -55,6 +97,8 @@ CREATE TABLE "Listing" (
     "isDemo" BOOLEAN NOT NULL DEFAULT false,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "oldPriceCents" INTEGER,
+    "phone" TEXT,
 
     CONSTRAINT "Listing_pkey" PRIMARY KEY ("id")
 );
@@ -74,7 +118,8 @@ CREATE TABLE "Upload" (
 CREATE TABLE "ListingImage" (
     "id" TEXT NOT NULL,
     "listingId" TEXT NOT NULL,
-    "storageKey" TEXT NOT NULL,
+    "storageKey" TEXT,
+    "url" TEXT,
     "position" INTEGER NOT NULL DEFAULT 0,
 
     CONSTRAINT "ListingImage_pkey" PRIMARY KEY ("id")
@@ -102,6 +147,7 @@ CREATE TABLE "Conversation" (
 CREATE TABLE "ConversationParticipant" (
     "conversationId" TEXT NOT NULL,
     "userId" TEXT NOT NULL,
+    "lastReadAt" TIMESTAMP(3),
 
     CONSTRAINT "ConversationParticipant_pkey" PRIMARY KEY ("conversationId","userId")
 );
@@ -162,8 +208,51 @@ CREATE TABLE "Report" (
     CONSTRAINT "Report_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "Review" (
+    "id" TEXT NOT NULL,
+    "listingId" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "rating" INTEGER NOT NULL DEFAULT 5,
+    "body" TEXT NOT NULL,
+    "reply" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "Review_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Order" (
+    "id" TEXT NOT NULL,
+    "listingId" TEXT,
+    "buyerId" TEXT NOT NULL,
+    "sellerId" TEXT NOT NULL,
+    "title" TEXT NOT NULL,
+    "priceCents" INTEGER NOT NULL,
+    "quantity" INTEGER NOT NULL DEFAULT 1,
+    "phone" TEXT,
+    "note" TEXT,
+    "status" "OrderStatus" NOT NULL DEFAULT 'PENDING',
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Order_pkey" PRIMARY KEY ("id")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Store_ownerId_key" ON "Store"("ownerId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Store_name_key" ON "Store"("name");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Store_slug_key" ON "Store"("slug");
+
+-- CreateIndex
+CREATE INDEX "OtpCode_email_purpose_createdAt_idx" ON "OtpCode"("email", "purpose", "createdAt");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Category_slug_key" ON "Category"("slug");
@@ -204,6 +293,21 @@ CREATE INDEX "Report_status_idx" ON "Report"("status");
 -- CreateIndex
 CREATE UNIQUE INDEX "Report_listingId_reporterId_key" ON "Report"("listingId", "reporterId");
 
+-- CreateIndex
+CREATE INDEX "Review_listingId_createdAt_idx" ON "Review"("listingId", "createdAt");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Review_listingId_userId_key" ON "Review"("listingId", "userId");
+
+-- CreateIndex
+CREATE INDEX "Order_buyerId_createdAt_idx" ON "Order"("buyerId", "createdAt");
+
+-- CreateIndex
+CREATE INDEX "Order_sellerId_status_createdAt_idx" ON "Order"("sellerId", "status", "createdAt");
+
+-- AddForeignKey
+ALTER TABLE "Store" ADD CONSTRAINT "Store_ownerId_fkey" FOREIGN KEY ("ownerId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
 -- AddForeignKey
 ALTER TABLE "Listing" ADD CONSTRAINT "Listing_ownerId_fkey" FOREIGN KEY ("ownerId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
@@ -217,7 +321,7 @@ ALTER TABLE "Upload" ADD CONSTRAINT "Upload_ownerId_fkey" FOREIGN KEY ("ownerId"
 ALTER TABLE "ListingImage" ADD CONSTRAINT "ListingImage_listingId_fkey" FOREIGN KEY ("listingId") REFERENCES "Listing"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "ListingImage" ADD CONSTRAINT "ListingImage_storageKey_fkey" FOREIGN KEY ("storageKey") REFERENCES "Upload"("key") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "ListingImage" ADD CONSTRAINT "ListingImage_storageKey_fkey" FOREIGN KEY ("storageKey") REFERENCES "Upload"("key") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Favorite" ADD CONSTRAINT "Favorite_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -260,4 +364,19 @@ ALTER TABLE "Report" ADD CONSTRAINT "Report_listingId_fkey" FOREIGN KEY ("listin
 
 -- AddForeignKey
 ALTER TABLE "Report" ADD CONSTRAINT "Report_reporterId_fkey" FOREIGN KEY ("reporterId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Review" ADD CONSTRAINT "Review_listingId_fkey" FOREIGN KEY ("listingId") REFERENCES "Listing"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Review" ADD CONSTRAINT "Review_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Order" ADD CONSTRAINT "Order_listingId_fkey" FOREIGN KEY ("listingId") REFERENCES "Listing"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Order" ADD CONSTRAINT "Order_buyerId_fkey" FOREIGN KEY ("buyerId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Order" ADD CONSTRAINT "Order_sellerId_fkey" FOREIGN KEY ("sellerId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 

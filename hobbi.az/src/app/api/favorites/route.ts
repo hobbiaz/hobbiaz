@@ -1,22 +1,34 @@
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { route, ok, requireUser, HttpError, isUniqueViolation } from "@/lib/http";
+import { listingInclude, toProduct } from "@/lib/listing-dto";
 
-export const GET = route(async () => {
+/** GET /api/favorites → my favourite products; ?ids=1 → just their ids. */
+export const GET = route(async (req) => {
   const u = await requireUser();
-  const favs = await db.favorite.findMany({ where: { userId: u.id, listing: { status: "PUBLISHED" } }, include: { listing: { include: { images: { take: 1, orderBy: { position: "asc" } } } } }, orderBy: { createdAt: "desc" } });
-  return ok(favs.map((f) => f.listing));
+  const where = { userId: u.id, listing: { status: "PUBLISHED" as const } };
+  if (new URL(req.url).searchParams.get("ids") === "1") {
+    const ids = await db.favorite.findMany({ where, select: { listingId: true } });
+    return ok(ids.map((f) => f.listingId));
+  }
+  const favs = await db.favorite.findMany({ where, include: { listing: { include: listingInclude } }, orderBy: { createdAt: "desc" } });
+  return ok(favs.map((f) => toProduct(f.listing)));
 });
 
-/** Toggle: adds if absent, removes if present. */
+const body = z.object({ listingId: z.string().min(1), favorited: z.boolean().optional() });
+
+/** Toggle, or set explicitly with { favorited: true|false } (used to merge guest favourites on login). */
 export const POST = route(async (req) => {
   const u = await requireUser();
-  const { listingId } = z.object({ listingId: z.string().min(1) }).parse(await req.json());
+  const { listingId, favorited } = body.parse(await req.json());
   const listing = await db.listing.findFirst({ where: { id: listingId, status: "PUBLISHED" }, select: { id: true } });
   if (!listing) throw new HttpError(404, "Elan tapılmadı");
-  // deleteMany/create instead of find-then-write, so two quick taps never 500.
-  const removed = await db.favorite.deleteMany({ where: { userId: u.id, listingId } });
-  if (removed.count) return ok({ favorited: false });
+  const exists = await db.favorite.findUnique({ where: { userId_listingId: { userId: u.id, listingId } }, select: { listingId: true } });
+  const want = favorited ?? !exists;
+  if (!want) {
+    await db.favorite.deleteMany({ where: { userId: u.id, listingId } });
+    return ok({ favorited: false });
+  }
   try {
     await db.favorite.create({ data: { userId: u.id, listingId } });
   } catch (e) {

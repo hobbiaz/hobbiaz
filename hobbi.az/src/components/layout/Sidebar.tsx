@@ -14,27 +14,23 @@ import { pressable } from "@/lib/a11y";
 
 const ICON_BOX = { width: 24, height: 24, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 } as const;
 
-const NAV: { page: PageName; label: string; outline: React.ReactNode; filled: React.ReactNode; badge?: number }[] = [
+const NAV: { page: PageName; label: string; outline: React.ReactNode; filled: React.ReactNode }[] = [
   { page: "home", label: "Ana Səhifə", outline: <IconHomeOutline />, filled: <IconHomeFilled /> },
   { page: "video", label: "Lent", outline: <IconVideoOutline />, filled: <IconVideoFilled /> },
   { page: "search", label: "Axtar", outline: <IconSearchOutline />, filled: <IconSearchFilled /> },
-  { page: "messages", label: "Mesajlar", outline: <IconMessagesOutline />, filled: <IconMessagesFilled />, badge: 3 },
-  {
-    page: "profile",
-    label: "Profil",
-    outline: <IconProfileOutline />,
-    filled: (
-      <span className="profile-filled-icon">
-        <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=60&h=60&fit=crop&crop=face" alt="Profil" />
-      </span>
-    ),
-  },
+  { page: "messages", label: "Mesajlar", outline: <IconMessagesOutline />, filled: <IconMessagesFilled /> },
+  { page: "profile", label: "Profil", outline: <IconProfileOutline />, filled: <IconProfileOutline /> },
 ];
 
 /** Desktop rail that expands on hover (≥1024px); hidden on phones by CSS. */
 export function Sidebar() {
   const page = useCurrentPage();
-  const { category, filterCategory, resetCategory, toast } = useUI();
+  const { category, filterCategory, resetCategory, toast, unreadMessages, user } = useUI();
+  const badgeFor = (p: PageName) => (p === "messages" && unreadMessages > 0 ? unreadMessages : undefined);
+  const avatar = user?.store?.avatarUrl ?? user?.avatarUrl;
+  const profileFilled = avatar
+    ? <span className="profile-filled-icon"><img src={avatar} alt="Profil" /></span>
+    : <span className="profile-filled-icon" style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", background: "#3E91C4", color: "#fff", fontWeight: 700, fontSize: ".75rem" }}>{(user?.store?.name ?? user?.name ?? "?")[0]?.toUpperCase()}</span>;
   const [catsOpen, setCatsOpen] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const closeTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -87,12 +83,12 @@ export function Sidebar() {
                 onClick={() => resetCategory()}
               >
                 <span className="nav-icon icon-outline">{item.outline}</span>
-                <span className="nav-icon icon-filled">{item.filled}</span>
+                <span className="nav-icon icon-filled">{item.page === "profile" && user ? profileFilled : item.filled}</span>
                 <span className="sidebar-text">{item.label}</span>
-                {item.badge !== undefined && (
+                {badgeFor(item.page) !== undefined && (
                   <>
                     <span className="dot sidebar-text" />
-                    <span className="nav-badge">{item.badge}</span>
+                    <span className="nav-badge">{badgeFor(item.page)}</span>
                   </>
                 )}
               </Link>
@@ -105,10 +101,17 @@ export function Sidebar() {
             <span className="nav-icon" style={ICON_BOX}><IconSettings /></span>
             <span className="sidebar-text">Parametrlər</span>
           </Link>
-          <div {...pressable} className="nav-item" onClick={() => toast("Daha çox seçimlər tezliklə")}>
-            <span className="nav-icon" style={ICON_BOX}><IconMore /></span>
-            <span className="sidebar-text">Daha çox</span>
-          </div>
+          {user?.role === "ADMIN" ? (
+            <Link href="/admin" className="nav-item">
+              <span className="nav-icon" style={ICON_BOX}><IconMore /></span>
+              <span className="sidebar-text">Admin panel</span>
+            </Link>
+          ) : (
+            <div {...pressable} className="nav-item" onClick={() => toast("Daha çox seçimlər tezliklə")}>
+              <span className="nav-icon" style={ICON_BOX}><IconMore /></span>
+              <span className="sidebar-text">Daha çox</span>
+            </div>
+          )}
         </div>
       </div>
     </aside>

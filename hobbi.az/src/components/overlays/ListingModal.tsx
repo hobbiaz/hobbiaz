@@ -1,7 +1,8 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useUI } from "@/providers/UIProvider";
+import { api, uploadImage } from "@/lib/api-client";
 import { Icon25Tamamlandi, IconAcarSozler, IconArrowNext, IconBunlariTetbiqEt, IconElaveEt, IconGunduzIsigindanIstifadeEdin, IconKateqoriyaSecimi, IconLSelectChevron, IconLSelectChevron2, IconListingTipsCard, IconListingVideoAside, IconMehsulunAciqlamasi, IconQisaVideoElaveEt, IconQisaVideoElaveEt2, IconQisaVideoElaveEt3, IconSekil, IconSekilleriBuraSurukleyinVe, IconSekillerleUygunluq, IconVideo, IconYeniElan } from "@/components/icons";
 import { pressable } from "@/lib/a11y";
 
@@ -17,11 +18,18 @@ const MAX_PHOTOS = 10;
 const MAX_TAGS = 13;
 const PRESET_TAGS = ["Yeni", "Zəmanətli", "Keyfiyyətli"];
 
-interface Photo { id: number; src: string }
+interface Photo { id: number; src: string; file: File }
+
+/** Wizard category → feed category slug. */
+const CATEGORY_SLUG: Record<string, string> = {
+  Keramika: "keramika", Rəsm: "resm", Zərgərlik: "zergerllik", "Xalçaçılıq / Toxuculuq": "toxuculuq",
+  "Ağac işi": "agac", "Musiqi alətləri": "musiqi", Dəri: "digər", Digər: "digər",
+};
+const CITIES = ["Bakı", "Sumqayıt", "Gəncə", "Lənkəran", "Şəki", "Qəbələ", "Mingəçevir", "Xırdalan", "Quba", "Şamaxı", "Naxçıvan", "Digər"];
 
 /** "Yeni Elan" — four-step listing wizard (photos → details → category → tags). */
 export function ListingModal() {
-  const { modal, closeModal, toast } = useUI();
+  const { modal, closeModal, toast, user, backend, openAuth, refreshFeed } = useUI();
   const open = modal === "listing";
   const [step, setStep] = useState<Step>(1);
   const [photos, setPhotos] = useState<Photo[]>([]);
@@ -32,6 +40,18 @@ export function ListingModal() {
   const [desc, setDesc] = useState("");
   const [tagInput, setTagInput] = useState("");
   const [tags, setTags] = useState<string[]>(PRESET_TAGS);
+  const [price, setPrice] = useState("");
+  const [oldPrice, setOldPrice] = useState("");
+  const [city, setCity] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  // Only sellers (accounts with a store) can post; others are sent to sign-in / profile.
+  useEffect(() => {
+    if (!open || backend !== "online") return;
+    if (!user) { closeModal(); openAuth("login"); toast("Elan yerləşdirmək üçün daxil olun"); return; }
+    if (!user.store) { closeModal(); toast("Elan yerləşdirmək üçün əvvəlcə mağaza açın (Profil)"); return; }
+    setCity((c) => c || user.store?.region || "Bakı");
+  }, [open, backend, user]); // eslint-disable-line react-hooks/exhaustive-deps
   const fileRef = useRef<HTMLInputElement>(null);
   const meta = STEPS[step];
   const stepClass = (s: Step) => `lstep${step === s ? " active" : ""}`;
@@ -40,17 +60,25 @@ export function ListingModal() {
   const [wasOpen, setWasOpen] = useState(open);
   if (open !== wasOpen) {
     setWasOpen(open);
-    if (open) setStep(1);
+    if (open) {
+      setStep(1);
+      setPhotos([]); setCoverId(null); setTitle(""); setCategory(""); setDesc(""); setTagInput("");
+      setTags(PRESET_TAGS); setPrice(""); setOldPrice(""); setBusy(false);
+    }
   }
 
   const pickFiles = () => fileRef.current?.click();
   const addFiles = (files: FileList | null) => {
     if (!files) return;
     if (photos.length >= MAX_PHOTOS) { toast("Maksimum 10 şəkil yükləyə bilərsiniz"); return; }
-    Array.from(files).slice(0, MAX_PHOTOS - photos.length).filter((f) => f.type.startsWith("image/")).forEach((file) => {
+    Array.from(files).slice(0, MAX_PHOTOS - photos.length).filter((f) => {
+      const ok = ["image/jpeg", "image/png", "image/webp"].includes(f.type) && f.size <= 5 * 1024 * 1024;
+      if (!ok) toast(`${f.name}: yalnız JPG/PNG/WebP, 5 MB-a qədər`);
+      return ok;
+    }).forEach((file) => {
       const reader = new FileReader();
       reader.onload = (ev) => {
-        const photo = { id: Date.now() + Math.random(), src: String(ev.target?.result) };
+        const photo = { id: Date.now() + Math.random(), src: String(ev.target?.result), file };
         setPhotos((list) => [...list, photo]);
         setCoverId((c) => c ?? photo.id);
       };
@@ -65,15 +93,66 @@ export function ListingModal() {
     });
   };
 
-  const next = () => setStep((s) => (s < 4 ? ((s + 1) as Step) : s));
-  const prev = () => (step > 1 ? setStep((s) => (s - 1) as Step) : closeModal());
-  const saveDraft = () => { toast("Qaralama olaraq saxlandı 📝"); closeModal(); };
-  const publish = () => {
-    if (!title.trim()) { toast("Zəhmət olmasa başlıq daxil edin"); return; }
-    if (!category) { toast("Zəhmət olmasa kateqoriya seçin"); return; }
-    toast("Məhsul uğurla dərc edildi! 🎉");
-    closeModal();
+  /** Each step checks its own fields before moving on (and before publishing). */
+  const stepProblem = (s: Step): string | null => {
+    if (s === 1 && photos.length === 0) return "Ən azı bir şəkil əlavə edin";
+    if (s === 2) {
+      if (title.trim().length < 3) return "Başlıq ən azı 3 simvol olmalıdır";
+      const p = Number(price.replace(",", "."));
+      if (!price || !Number.isFinite(p) || p <= 0) return "Qiyməti düzgün daxil edin";
+      if (oldPrice && !(Number(oldPrice.replace(",", ".")) > p)) return "Köhnə qiymət yeni qiymətdən böyük olmalıdır";
+      if (!city) return "Şəhəri seçin";
+    }
+    if (s === 3) {
+      if (!category) return "Zəhmət olmasa kateqoriya seçin";
+      if (desc.trim().length < 10) return "Açıqlama ən azı 10 simvol olmalıdır";
+    }
+    return null;
   };
+  const next = () => {
+    const problem = stepProblem(step);
+    if (problem) { toast(problem); return; }
+    setStep((s) => (s < 4 ? ((s + 1) as Step) : s));
+  };
+  const prev = () => (step > 1 ? setStep((s) => (s - 1) as Step) : closeModal());
+
+  /** Uploads the photos (cover first) and creates the listing. */
+  const submit = async (status: "DRAFT" | "PUBLISHED") => {
+    if (backend !== "online") { toast("Demo rejim: elan üçün server qoşulmalıdır"); return; }
+    if (status === "PUBLISHED") {
+      for (const s of [1, 2, 3] as Step[]) {
+        const problem = stepProblem(s);
+        if (problem) { setStep(s); toast(problem); return; }
+      }
+    } else if (title.trim().length < 3) { setStep(2); toast("Qaralama üçün ən azı başlıq yazın"); return; }
+    setBusy(true);
+    try {
+      const ordered = [...photos].sort((a, b) => (a.id === coverId ? -1 : b.id === coverId ? 1 : 0));
+      const keys: string[] = [];
+      for (const ph of ordered) keys.push((await uploadImage(ph.file)).key);
+      const hashtags = tags.map((t) => "#" + t.replace(/\s+/g, "")).join(" ");
+      const description = (desc.trim() || title.trim()).padEnd(10, ".") + (hashtags ? `\n\n${hashtags}` : "");
+      await api("/api/listings", {
+        method: "POST",
+        body: {
+          title: title.trim(), description, status, images: keys, city: city || "Bakı",
+          priceAzn: Number(price.replace(",", ".")) || 0,
+          oldPriceAzn: oldPrice ? Number(oldPrice.replace(",", ".")) : undefined,
+          categorySlug: CATEGORY_SLUG[category] ?? "digər", condition: "HANDMADE",
+        },
+      });
+      toast(status === "PUBLISHED" ? "Məhsul uğurla dərc edildi! 🎉" : "Qaralama olaraq saxlandı 📝");
+      refreshFeed();
+      window.dispatchEvent(new Event("hobbi:listings-changed"));
+      closeModal();
+    } catch (e) {
+      toast(e instanceof Error ? e.message : "Xəta baş verdi");
+    } finally {
+      setBusy(false);
+    }
+  };
+  const saveDraft = () => void submit("DRAFT");
+  const publish = () => void submit("PUBLISHED");
   const onTagKey = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key !== "Enter") return;
     const v = tagInput.trim();
@@ -93,7 +172,7 @@ export function ListingModal() {
               </button>
               <h1 className="listing-header-title">Yeni Elan</h1>
             </div>
-            <button type="button" className="listing-help-btn" onClick={() => toast("Kömək mərkəzi tezliklə")} aria-label="Kömək">
+            <button type="button" className="listing-help-btn" onClick={() => toast("Şəkil → məlumat → kateqoriya → teqlər. Qaralama sonra profildən dərc edilə bilər")} aria-label="Kömək">
               <Icon25Tamamlandi />
             </button>
           </div>
@@ -141,7 +220,7 @@ export function ListingModal() {
                     <div className="listing-drop-title">Şəkilləri bura sürükləyin və ya seçin</div>
                     <div className="listing-drop-sub">Minimum 3 şəkil tövsiyə olunur (Maks 10)</div>
                   </div>
-                  <input ref={fileRef} type="file" id="file-input" accept="image/*" multiple style={{ display: "none" }} onChange={(e) => { addFiles(e.target.files); e.target.value = ""; }} />
+                  <input ref={fileRef} type="file" id="file-input" accept="image/jpeg,image/png,image/webp" multiple style={{ display: "none" }} onChange={(e) => { addFiles(e.target.files); e.target.value = ""; }} />
                   <div className="upload-preview-row" id="preview-row">
                     <div {...pressable} className="listing-thumb-add" onClick={pickFiles}><IconElaveEt /><span>Əlavə et</span></div>
                     <div {...pressable} className="listing-thumb-add" onClick={pickFiles}><IconElaveEt /></div>
@@ -165,14 +244,14 @@ export function ListingModal() {
                     <IconVideo />
                     <h3>Video</h3>
                   </div>
-                  <div {...pressable} className="listing-video-row" onClick={() => toast("Video seçin")}>
+                  <div {...pressable} className="listing-video-row" onClick={() => toast("Video yükləmə tezliklə əlavə olunacaq")}>
                     <div className="listing-video-icon">
                     <IconQisaVideoElaveEt />
                     </div>
                     <div className="listing-video-text"><strong>Qısa video əlavə et</strong><span>Maksimum 30 saniyə, MP4 formatda</span></div>
                     <IconQisaVideoElaveEt2 />
                   </div>
-                  <div {...pressable} className="listing-video-desktop" onClick={() => toast("Video seçin")}>
+                  <div {...pressable} className="listing-video-desktop" onClick={() => toast("Video yükləmə tezliklə əlavə olunacaq")}>
                     <div className="listing-video-upload">
                       <div className="listing-video-upload-icon"><IconQisaVideoElaveEt3 /></div>
                       <div className="listing-drop-title">Qısa video əlavə et</div>
@@ -222,6 +301,26 @@ export function ListingModal() {
                 <div className="l-field">
                   <label className="l-label-upper" htmlFor="l-title">BAŞLIQ</label>
                   <input className="l-input" type="text" id="l-title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Məs: Əl işi saxsı qab - Minimalist dizayn" maxLength={140} />
+                </div>
+                <div className="l-row">
+                  <div className="l-field">
+                    <label className="l-label-upper" htmlFor="l-price">QİYMƏT (AZN)</label>
+                    <input className="l-input" type="text" inputMode="decimal" id="l-price" value={price} onChange={(e) => setPrice(e.target.value.replace(/[^0-9.,]/g, ""))} placeholder="Məs: 45" />
+                  </div>
+                  <div className="l-field">
+                    <label className="l-label-upper" htmlFor="l-old-price">KÖHNƏ QİYMƏT (ENDİRİM, İSTƏYƏ BAĞLI)</label>
+                    <input className="l-input" type="text" inputMode="decimal" id="l-old-price" value={oldPrice} onChange={(e) => setOldPrice(e.target.value.replace(/[^0-9.,]/g, ""))} placeholder="Məs: 60" />
+                  </div>
+                </div>
+                <div className="l-field">
+                  <label className="l-label-upper" htmlFor="l-city">ŞƏHƏR</label>
+                  <div className="l-select-wrap">
+                    <select className="l-select" id="l-city" value={city} onChange={(e) => setCity(e.target.value)}>
+                      <option value="">Şəhəri seçin</option>
+                      {CITIES.map((c) => <option key={c}>{c}</option>)}
+                    </select>
+                    <IconLSelectChevron />
+                  </div>
                 </div>
                 <div className="l-row">
                   <div className="l-field">
@@ -333,9 +432,9 @@ export function ListingModal() {
 
         <footer className="listing-footer">
           <div className="listing-footer-inner">
-            <button type="button" className="listing-btn-draft" id="listing-draft-btn" onClick={saveDraft}>Qaralama</button>
-            <button type="button" className="listing-btn-next" id="listing-next-btn" onClick={step === 4 ? publish : next}>
-              {step === 4 ? "Paylaş" : <>Növbəti <IconArrowNext /></>}
+            <button type="button" className="listing-btn-draft" id="listing-draft-btn" onClick={saveDraft} disabled={busy}>Qaralama</button>
+            <button type="button" className="listing-btn-next" id="listing-next-btn" onClick={step === 4 ? publish : next} disabled={busy}>
+              {busy ? "Yüklənir…" : step === 4 ? "Paylaş" : <>Növbəti <IconArrowNext /></>}
             </button>
           </div>
         </footer>

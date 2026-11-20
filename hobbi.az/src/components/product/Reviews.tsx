@@ -4,10 +4,9 @@ import { forwardRef, useState } from "react";
 import type { Review } from "@/types";
 import { useUI } from "@/providers/UIProvider";
 import { ImageWithFallback } from "@/components/ui/ImageWithFallback";
-import { IconCameraSmall } from "@/components/icons";
 import { pressable } from "@/lib/a11y";
 
-function ReviewItem({ review: r, onReply, onOpenUser }: { review: Review; onReply: (text: string) => void; onOpenUser: () => void }) {
+function ReviewItem({ review: r, onReply, onOpenUser, canReply }: { review: Review; onReply: (text: string) => void; onOpenUser: () => void; canReply: boolean }) {
   const [open, setOpen] = useState(false);
   const [text, setText] = useState("");
   const fallback = <div className="pd-avatar-fallback">{r.user[0] || "?"}</div>;
@@ -20,6 +19,7 @@ function ReviewItem({ review: r, onReply, onOpenUser }: { review: Review; onRepl
       <div className="pd-review-body">
         <div className="pd-review-header">
           <span {...pressable} className="pd-review-user" onClick={onOpenUser}>{r.user}</span>
+          {r.rating !== undefined && <span style={{ color: "#f5a623", marginLeft: ".4rem", fontSize: ".8rem" }} aria-label={`${r.rating} ulduz`}>{"★".repeat(r.rating)}</span>}
         </div>
         <div className="pd-review-text">{r.text}</div>
         {r.images.length > 0 && (
@@ -27,9 +27,11 @@ function ReviewItem({ review: r, onReply, onOpenUser }: { review: Review; onRepl
             {r.images.map((src, i) => <img key={i} className="pd-review-img" src={src} alt="" />)}
           </div>
         )}
-        <div className="pd-review-actions">
-          <button className="pd-reply-btn" onClick={() => setOpen((o) => !o)}>{open ? "Ləğv et" : "Cavab yaz"}</button>
-        </div>
+        {canReply && r.replies.length === 0 && (
+          <div className="pd-review-actions">
+            <button className="pd-reply-btn" onClick={() => setOpen((o) => !o)}>{open ? "Ləğv et" : "Cavab yaz"}</button>
+          </div>
+        )}
         <div className={`pd-reply-form${open ? " open" : ""}`} id={`pd-reply-form-${r.id}`}>
           <input
             type="text"
@@ -71,28 +73,30 @@ function ReviewItem({ review: r, onReply, onOpenUser }: { review: Review; onRepl
 
 interface Props {
   reviews: Review[];
-  onChange: (reviews: Review[]) => void;
+  /** Resolves true when the review was saved. */
+  onSubmit: (text: string, rating: number) => Promise<boolean>;
+  onReply: (review: Review, text: string) => void;
+  /** Only the seller answers reviews. */
+  canReply: boolean;
+  /** Sellers don't review their own product. */
+  canWrite: boolean;
   onOpenUser: (name: string, avatar: string) => void;
 }
 
-export const Reviews = forwardRef<HTMLDivElement, Props>(function Reviews({ reviews, onChange, onOpenUser }, ref) {
+export const Reviews = forwardRef<HTMLDivElement, Props>(function Reviews({ reviews, onSubmit, onReply, canReply, canWrite, onOpenUser }, ref) {
   const { toast } = useUI();
   const [text, setText] = useState("");
-  const [photos, setPhotos] = useState<string[]>([]);
+  const [rating, setRating] = useState(5);
+  const [busy, setBusy] = useState(false);
 
-  const addPhotos = (files: FileList | null) => {
-    Array.from(files ?? []).forEach((file) => {
-      const reader = new FileReader();
-      reader.onload = (e) => setPhotos((p) => [...p, String(e.target?.result)]);
-      reader.readAsDataURL(file);
-    });
-  };
-
-  const submit = () => {
+  const submit = async () => {
     if (!text.trim()) { toast("Zəhmət olmasa rəy yazın"); return; }
-    onChange([...reviews, { id: Date.now(), user: "Siz", avatar: "", text: text.trim(), images: photos, replies: [] }]);
+    setBusy(true);
+    const saved = await onSubmit(text.trim(), rating);
+    setBusy(false);
+    if (!saved) return;
     setText("");
-    setPhotos([]);
+    setRating(5);
     toast("Rəyiniz əlavə edildi ✅");
     setTimeout(() => (ref && "current" in ref ? ref.current : null)?.scrollIntoView({ behavior: "smooth" }), 150);
   };
@@ -106,30 +110,37 @@ export const Reviews = forwardRef<HTMLDivElement, Props>(function Reviews({ revi
             key={r.id}
             review={r}
             onOpenUser={() => onOpenUser(r.user, r.avatar)}
-            onReply={(reply) => onChange(reviews.map((x) => (x.id === r.id ? { ...x, replies: [...x.replies, { user: "Siz", text: reply }] } : x)))}
+            canReply={canReply}
+            onReply={(reply) => onReply(r, reply)}
           />
         ))}
       </div>
-      <div className="pd-write-review">
-        <div className="pd-write-review-title">Rəy yaz</div>
-        <textarea className="pd-review-textarea" id="pd-review-input" placeholder="Məhsul haqqında fikirlərinizi yazın..." value={text} onChange={(e) => setText(e.target.value)} />
-        <div className="pd-photo-previews" id="pd-photo-previews">
-          {photos.map((src, i) => (
-            <div className="pd-photo-thumb-wrap" key={i}>
-              <img className="pd-photo-thumb" src={src} alt="" />
-              <button className="pd-photo-thumb-remove" onClick={() => setPhotos((p) => p.filter((_, j) => j !== i))}>✕</button>
-            </div>
-          ))}
+      {reviews.length === 0 && <p style={{ color: "var(--outline)", fontSize: ".9rem", margin: ".5rem 0 1rem" }}>Hələ rəy yoxdur. İlk rəyi siz yazın!</p>}
+      {canWrite && (
+        <div className="pd-write-review">
+          <div className="pd-write-review-title">Rəy yaz</div>
+          <div role="radiogroup" aria-label="Qiymətləndirmə" style={{ display: "flex", gap: ".15rem", marginBottom: ".5rem" }}>
+            {[1, 2, 3, 4, 5].map((n) => (
+              <button
+                key={n}
+                type="button"
+                role="radio"
+                aria-checked={rating === n}
+                aria-label={`${n} ulduz`}
+                onClick={() => setRating(n)}
+                style={{ background: "none", border: 0, cursor: "pointer", fontSize: "1.35rem", color: n <= rating ? "#f5a623" : "var(--outline-var)", padding: 0 }}
+              >
+                ★
+              </button>
+            ))}
+          </div>
+          <textarea className="pd-review-textarea" id="pd-review-input" placeholder="Məhsul haqqında fikirlərinizi yazın..." value={text} maxLength={1000} onChange={(e) => setText(e.target.value)} />
+          <div className="pd-review-form-row">
+            <span />
+            <button className="pd-send-review-btn" onClick={submit} disabled={busy}>{busy ? "Göndərilir…" : "Göndər"}</button>
+          </div>
         </div>
-        <div className="pd-review-form-row">
-          <label className="pd-photo-label">
-            <IconCameraSmall />
-            Şəkil
-            <input type="file" accept="image/*" multiple onChange={(e) => { addPhotos(e.target.files); e.target.value = ""; }} />
-          </label>
-          <button className="pd-send-review-btn" onClick={submit}>Göndər</button>
-        </div>
-      </div>
+      )}
     </div>
   );
 });

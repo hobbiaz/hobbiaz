@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { PRODUCTS } from "@/data/products";
 import { DEFAULT_AD, type AdData } from "@/lib/product-detail";
 import { readJSON, readStorage, writeStorage } from "@/lib/storage-client";
 import { useUI } from "@/providers/UIProvider";
@@ -73,11 +72,15 @@ function AdCard() {
 }
 
 /** "Bunları da sevə bilərsən" — up to 8 other products in random order plus the ad tile. */
-export function Discovery({ productId, onOpen }: { productId: number; onOpen: (id: number) => void }) {
-  const others = useMemo(
-    () => PRODUCTS.filter((p) => p.id !== productId).sort(() => Math.random() - 0.5).slice(0, 8),
-    [productId],
-  );
+export function Discovery({ productId, onOpen }: { productId: string; onOpen: (id: string) => void }) {
+  const { catalog } = useUI();
+  // Same category first, then the rest, shuffled once per product.
+  const others = useMemo(() => {
+    const current = catalog.find((p) => p.id === productId);
+    const pool = catalog.filter((p) => p.id !== productId && (p.images[0] || p.photo));
+    const shuffled = [...pool].sort(() => Math.random() - 0.5);
+    return [...shuffled.filter((p) => p.cat === current?.cat), ...shuffled.filter((p) => p.cat !== current?.cat)].slice(0, 8);
+  }, [productId]); // eslint-disable-line react-hooks/exhaustive-deps
   return (
     <div className="pd-discovery">
       <h2 className="pd-discovery-title">Bunları da sevə bilərsən.</h2>

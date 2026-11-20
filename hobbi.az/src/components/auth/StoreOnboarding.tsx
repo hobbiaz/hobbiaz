@@ -1,6 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { api, uploadImage } from "@/lib/api-client";
 import { useUI } from "@/providers/UIProvider";
 import { OtpInput, type OtpInputHandle } from "./OtpInput";
 import { Confetti } from "./Confetti";
@@ -8,16 +10,22 @@ import { isAzPhone, isEmail, passwordProblem, passwordStrength } from "@/lib/pas
 import { IconArrowRight, IconAvatarBadge, IconAvatarOverlay, IconAvatarPlaceholder, IconBack, IconCheckCircle, IconCheckFill, IconClose, IconCloseSmall, IconEye, IconEyeOff, IconGallery, IconInfo, IconLightbulb, IconLogin, IconRefresh, IconRegionBaki, IconRegionGence, IconRegionLenkeran, IconRegionMingecevir, IconRegionQebele, IconRegionSearch, IconRegionSeki, IconRegionSumqayit, IconRegionXirdalan, IconRocket, IconStorePlus, IconSuccess, IconTakePhoto } from "@/components/icons";
 import { pressable } from "@/lib/a11y";
 
-type StepId = "1" | "2l" | "2r" | "3" | "4" | "5" | "6" | "7" | "8" | "9";
+type StepId = "1" | "2l" | "2r" | "3" | "4" | "5" | "6" | "7" | "8" | "9" | "r1" | "r2";
 const REGISTER_STEPS: StepId[] = ["2r", "3", "4", "5", "6", "7", "8", "9"];
 const NEXT: Partial<Record<StepId, StepId>> = { "2r": "3", "3": "4", "4": "5", "5": "6", "6": "7", "7": "8", "8": "9" };
-const PREV: Partial<Record<StepId, StepId>> = { "2l": "1", "2r": "1", "3": "2r", "4": "3", "5": "4", "6": "5", "7": "6", "8": "7", "9": "8" };
+// After the account is created (step 6) there is no way back into the sign-up steps.
+const PREV: Partial<Record<StepId, StepId>> = { "2l": "1", "2r": "1", "3": "2r", "4": "3", "5": "4", "6": "5", r1: "2l", r2: "r1" };
 const CLOSE_MS = 420;
 
 const CATEGORIES = [
   ["Keramika", "🏺"], ["Rəsm", "🎨"], ["Zərgərlik", "💍"], ["Toxuculuq", "🧶"],
   ["Ağac işi", "🪵"], ["Musiqi", "🎸"], ["Tikiş", "🧵"], ["Digər", "✨"],
 ] as const;
+/** Wizard card → store category slug (same slugs as the feed filters). */
+const CATEGORY_SLUG: Record<string, string> = {
+  Keramika: "keramika", Rəsm: "resm", Zərgərlik: "zergerllik", Toxuculuq: "toxuculuq",
+  "Ağac işi": "agac", Musiqi: "musiqi", Tikiş: "toxuculuq", Digər: "digər",
+};
 
 const REGIONS: { name: string; icon: React.ReactNode }[] = [
   { name: "Bakı", icon: <IconRegionBaki /> },
@@ -32,7 +40,8 @@ const REGIONS: { name: string; icon: React.ReactNode }[] = [
 
 /** "Mağaza Aç" — multi-step store onboarding / login sheet. */
 export function StoreOnboarding() {
-  const { modal, closeModal, toast } = useUI();
+  const { modal, closeModal, toast, authMode, backend, refreshUser } = useUI();
+  const router = useRouter();
   const isOpen = modal === "auth";
   const [mounted, setMounted] = useState(false);
   const [visible, setVisible] = useState(false);
@@ -51,6 +60,13 @@ export function StoreOnboarding() {
   const [regionQuery, setRegionQuery] = useState("");
   const [otpHelp, setOtpHelp] = useState(false);
   const [shaking, setShaking] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [email, setEmail] = useState("");
+  const [verificationToken, setVerificationToken] = useState("");
+  const [brandStatus, setBrandStatus] = useState<"idle" | "checking" | "ok" | "taken">("idle");
+  const [resetEmail, setResetEmail] = useState("");
+  const [resetCode, setResetCode] = useState("");
+  const [resetPw, setResetPw] = useState("");
   const sheetRef = useRef<HTMLDivElement>(null);
   const otpRef = useRef<OtpInputHandle>(null);
   const avatarInput = useRef<HTMLInputElement>(null);
@@ -62,8 +78,10 @@ export function StoreOnboarding() {
   // open: mount with display:flex, then add .open two frames later so the sheet animates in
   useEffect(() => {
     if (isOpen) {
-      setMode("register"); setStep("1"); setGoingBack(false); setCategory(null); setRegion("Bakı");
-      setPassword(""); setConfirmPw("");
+      setMode(authMode === "register" ? "register" : "login");
+      setStep(authMode === "login" ? "2l" : authMode === "reset" ? "r1" : "1");
+      setGoingBack(false); setCategory(null); setRegion("Bakı");
+      setPassword(""); setConfirmPw(""); setVerificationToken(""); setBusy(false); setAvatar(null);
       setMounted(true);
       let r2 = 0;
       const r1 = requestAnimationFrame(() => { r2 = requestAnimationFrame(() => setVisible(true)); });
@@ -73,7 +91,20 @@ export function StoreOnboarding() {
     setOtpHelp(false);
     const t = setTimeout(() => setMounted(false), CLOSE_MS);
     return () => clearTimeout(t);
-  }, [isOpen]);
+  }, [isOpen]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Brand-name availability, checked against the server while typing.
+  useEffect(() => {
+    const name = brand.trim();
+    if (name.length < 4 || backend !== "online") { setBrandStatus("idle"); return; }
+    setBrandStatus("checking");
+    const t = setTimeout(() => {
+      api<{ available: boolean }>(`/api/stores/check?name=${encodeURIComponent(name)}`)
+        .then((r) => setBrandStatus(r.available ? "ok" : "taken"))
+        .catch(() => setBrandStatus("idle"));
+    }, 350);
+    return () => clearTimeout(t);
+  }, [brand, backend]);
 
   // focus the first text input of each step
   useEffect(() => {
@@ -98,16 +129,15 @@ export function StoreOnboarding() {
   const validStep = (): boolean => {
     switch (step) {
       case "3":
-        return brandOk || reject("auth-brand-name", "Marka adı ən azı 4 simvol olmalıdır");
+        if (!brandOk) return reject("auth-brand-name", "Marka adı ən azı 4 simvol olmalıdır");
+        if (brandStatus === "taken") return reject("auth-brand-name", "Bu marka adı artıq tutulub");
+        return true;
       case "4": {
-        if (contact === "phone") {
-          const v = phoneRef.current?.value ?? "";
-          return isAzPhone(v) || reject("auth-phone", "Nömrəni düzgün daxil edin, məs: 50 123 45 67");
-        }
+        if (contact === "phone" && !isAzPhone(phoneRef.current?.value ?? ""))
+          return reject("auth-phone", "Nömrəni düzgün daxil edin, məs: 50 123 45 67");
         return isEmail(emailRef.current?.value ?? "") || reject("auth-email", "E-mail ünvanı düzgün deyil");
       }
       case "5":
-        // NOTE: the code is not verified yet — that needs the OTP backend (plan, step 2).
         return (otpRef.current?.value().length === 6) || reject("auth-otp", "6 rəqəmli kodu tam daxil edin");
       case "6": {
         const problem = passwordProblem(password);
@@ -118,14 +148,71 @@ export function StoreOnboarding() {
         return true;
     }
   };
+  const phoneValue = () => {
+    const v = phoneRef.current?.value.replace(/[\s-]/g, "").replace(/^0/, "") ?? "";
+    return contact === "phone" && v ? `+994${v}` : undefined;
+  };
+  /** Runs a server step with a busy flag; shows the server's message on failure. */
+  const run = async (fn: () => Promise<void>) => {
+    if (busy) return;
+    setBusy(true);
+    try { await fn(); } catch (e) { toast(e instanceof Error ? e.message : "Xəta baş verdi"); } finally { setBusy(false); }
+  };
+  /** Sends the code; true when a dev code was shown (local development without e-mail). */
+  const sendCode = (to: string, purpose: "SIGNUP" | "RESET") =>
+    api<{ devCode?: string }>("/api/auth/otp", { method: "POST", body: { email: to, purpose } }).then((r) => {
+      if (r.devCode) toast(`Test rejimi: kod ${r.devCode}`);
+      return Boolean(r.devCode);
+    });
+
   const next = () => {
     const target = NEXT[step];
     if (!target || !validStep()) return;
-    if (step === "4") {
-      const v = (contact === "phone" ? "+994 " + (phoneRef.current?.value ?? "") : emailRef.current?.value ?? "").trim();
-      setOtpTarget(v);
+    if (backend === "offline" && ["4", "5", "6"].includes(step)) { toast("Demo rejim: qeydiyyat üçün server qoşulmalıdır"); return; }
+    switch (step) {
+      case "4":
+        return void run(async () => {
+          const to = (emailRef.current?.value ?? "").trim().toLowerCase();
+          await sendCode(to, "SIGNUP");
+          setEmail(to);
+          setOtpTarget(to);
+          go(target);
+        });
+      case "5":
+        return void run(async () => {
+          const r = await api<{ token: string }>("/api/auth/otp/verify", { method: "POST", body: { email, purpose: "SIGNUP", code: otpRef.current?.value() } });
+          setVerificationToken(r.token);
+          go(target);
+        });
+      case "6":
+        return void run(async () => {
+          await api("/api/auth/register", {
+            method: "POST",
+            body: { email, password, verificationToken, store: { name: brand.trim(), categorySlug: CATEGORY_SLUG[category ?? "Digər"], region, phone: phoneValue() } },
+          });
+          await refreshUser();
+          go(target);
+        });
+      case "8":
+        return void run(async () => {
+          await api("/api/store", { method: "PATCH", body: { region } });
+          await refreshUser();
+          go(target);
+        });
+      default:
+        go(target);
     }
-    go(target);
+  };
+  const pickAvatar = (file: File | undefined) => {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => setAvatar(String(ev.target?.result));
+    reader.readAsDataURL(file);
+    void run(async () => {
+      const { key } = await uploadImage(file);
+      await api("/api/store", { method: "PATCH", body: { avatarKey: key } });
+      toast("Profil şəkli yükləndi ✅");
+    });
   };
   const prev = () => {
     const target = PREV[step];
@@ -133,12 +220,39 @@ export function StoreOnboarding() {
     else close();
   };
   const submitLogin = () => {
-    if (!loginId.current?.value.trim()) return reject("login-identity", "E-mail və ya nömrəni daxil edin");
-    if (!loginPw.current?.value) return reject("login-password", "Şifrəni daxil edin");
-    toast("Uğurla daxil oldunuz 👋");
-    close();
+    const identity = loginId.current?.value.trim() ?? "";
+    const pw = loginPw.current?.value ?? "";
+    if (!identity) return reject("login-identity", "E-mail və ya mağaza adını daxil edin");
+    if (!pw) return reject("login-password", "Şifrəni daxil edin");
+    if (backend === "offline") { toast("Demo rejim: giriş üçün server qoşulmalıdır"); return; }
+    void run(async () => {
+      await api("/api/auth/login", { method: "POST", body: { identity, password: pw } });
+      const me = await refreshUser();
+      toast(`Xoş gəldiniz, ${me?.store?.name ?? me?.name ?? ""} 👋`);
+      close();
+    });
   };
-  const resendOtp = () => { toast("Kod yenidən göndərildi 📩"); otpRef.current?.reset(); };
+  const resendOtp = () => {
+    otpRef.current?.reset();
+    void run(async () => { if (!(await sendCode(email, "SIGNUP"))) toast("Kod yenidən göndərildi 📩"); });
+  };
+  const startReset = () => { setResetEmail(loginId.current?.value.includes("@") ? loginId.current.value.trim() : ""); go("r1"); };
+  const sendResetCode = () => {
+    if (!isEmail(resetEmail)) return reject("reset-email", "E-mail ünvanı düzgün deyil");
+    void run(async () => { await sendCode(resetEmail.trim().toLowerCase(), "RESET"); go("r2"); });
+  };
+  const submitReset = () => {
+    if (!/^\d{6}$/.test(resetCode)) return reject("reset-code", "6 rəqəmli kodu daxil edin");
+    const problem = passwordProblem(resetPw);
+    if (problem) return reject("reset-pw", problem);
+    void run(async () => {
+      await api("/api/auth/password-reset", { method: "POST", body: { email: resetEmail.trim().toLowerCase(), code: resetCode, password: resetPw } });
+      await refreshUser();
+      toast("Şifrə yeniləndi, daxil oldunuz ✅");
+      close();
+    });
+  };
+  const finish = () => { close(); router.push("/profile"); };
   const pwType = (id: string) => (shown[id] ? "text" : "password");
   const togglePw = (id: string) => setShown((s) => ({ ...s, [id]: !s[id] }));
   const strength = passwordStrength(password);
@@ -147,6 +261,7 @@ export function StoreOnboarding() {
   const showProgress = mode === "register" && registerIdx !== -1;
   const progressPct = showProgress ? Math.round(((registerIdx + 1) / REGISTER_STEPS.length) * 100) : 0;
   const brandOk = brand.trim().length > 3;
+  const brandHint = !brandOk ? "" : brandStatus === "checking" ? "Yoxlanılır…" : brandStatus === "taken" ? "Bu marka adı artıq tutulub." : "Bu marka adı istifadə edilə bilər.";
   const sheet = useCallback(() => sheetRef.current, []);
   const regions = REGIONS.filter((r) => r.name.toLowerCase().includes(regionQuery.toLowerCase()));
 
@@ -205,13 +320,13 @@ export function StoreOnboarding() {
             <h2 className="auth-step-title">Xoş gəldiniz!</h2>
             <p className="auth-step-sub">Mağaza hesabınıza daxil olun.</p>
             <div className="auth-form-group">
-              <label className="auth-label" htmlFor="login-identity">İstifadəçi adı və ya E-mail</label>
-              <input ref={loginId} type="text" id="login-identity" className={`auth-input${shakeCls("login-identity")}`} placeholder="Mağaza adı, e-mail və ya əlaqə nömrən" autoComplete="username" />
+              <label className="auth-label" htmlFor="login-identity">Mağaza adı və ya E-mail</label>
+              <input ref={loginId} type="text" id="login-identity" className={`auth-input${shakeCls("login-identity")}`} placeholder="Mağaza adı və ya e-mail" autoComplete="username" />
             </div>
             <div className="auth-form-group">
               <div className="auth-label-row">
                 <label className="auth-label" htmlFor="login-password">Şifrə</label>
-                <button type="button" className="auth-link-sm" style={{ background: "none", border: 0, padding: 0, cursor: "pointer" }} onClick={() => toast("Şifrə bərpası server qoşulandan sonra aktiv olacaq")}>Şifrəni unutmusan?</button>
+                <button type="button" className="auth-link-sm" style={{ background: "none", border: 0, padding: 0, cursor: "pointer" }} onClick={startReset}>Şifrəni unutmusan?</button>
               </div>
               <div className="auth-input-icon-wrap">
                 <input ref={loginPw} type={pwType("login-password")} id="login-password" className={`auth-input${shakeCls("login-password")}`} placeholder="Şifrənizi daxil edin" autoComplete="current-password" />
@@ -225,7 +340,7 @@ export function StoreOnboarding() {
               <span className="auth-checkbox-custom"></span>
               <span className="auth-checkbox-text">Məni xatırla</span>
             </label>
-            <button className="auth-btn-primary" onClick={submitLogin}>Giriş et</button>
+            <button className="auth-btn-primary" onClick={submitLogin} disabled={busy}>{busy ? "Yoxlanılır…" : "Giriş et"}</button>
             <div className="auth-divider"><span>və ya</span></div>
             <button className="auth-btn-secondary" onClick={startRegister}>Yeni mağaza hesabı yarat</button>
           </div>
@@ -252,11 +367,11 @@ export function StoreOnboarding() {
               <label className="auth-label" htmlFor="auth-brand-name">Marka adı</label>
               <div className="auth-input-validate-wrap">
                 <input type="text" id="auth-brand-name" className={`auth-input${shakeCls("auth-brand-name")}`} placeholder="Məs: AyselKeramika" maxLength={40} value={brand} onChange={(e) => setBrand(e.target.value)} />
-                <span className={`auth-validate-icon${brandOk ? " show" : ""}`} id="auth-brand-check">
+                <span className={`auth-validate-icon${brandOk && brandStatus !== "taken" && brandStatus !== "checking" ? " show" : ""}`} id="auth-brand-check">
                   <IconCheckCircle />
                 </span>
               </div>
-              <p className="auth-field-hint auth-hint-success" id="auth-brand-hint">{brandOk ? "Bu marka adı istifadə edilə bilər." : ""}</p>
+              <p className={`auth-field-hint ${brandStatus === "taken" ? "" : "auth-hint-success"}`} style={brandStatus === "taken" ? { color: "#ba1a1a" } : undefined} id="auth-brand-hint">{brandHint}</p>
             </div>
             <div className="auth-tip-box">
               <IconLightbulb />
@@ -268,7 +383,7 @@ export function StoreOnboarding() {
           {/* STEP 4: Contact */}
           <div className={stepCls("4")} id="auth-step-4">
             <h2 className="auth-step-title">Əlaqə məlumatı</h2>
-            <p className="auth-step-sub">{contact === "phone" ? "Hesabınızı təsdiqləmək üçün telefon nömrənizi daxil edin." : "Hesabınızı təsdiqləmək üçün e-mail ünvanınızı daxil edin."}</p>
+            <p className="auth-step-sub">Təsdiq kodu e-mail ünvanınıza göndəriləcək.{contact === "phone" ? " Telefon nömrəsi alıcılara əlaqə üçün göstəriləcək." : ""}</p>
             <div className="auth-contact-toggle">
               <button className={`auth-contact-tab${contact === "phone" ? " active" : ""}`} id="auth-tab-phone" onClick={() => setContact("phone")}>📱 Telefon</button>
               <button className={`auth-contact-tab${contact === "email" ? " active" : ""}`} id="auth-tab-email" onClick={() => setContact("email")}>✉️ E-mail</button>
@@ -282,13 +397,13 @@ export function StoreOnboarding() {
                 </div>
               </div>
             </div>
-            <div id="auth-contact-email-wrap" style={{ display: contact === "email" ? "block" : "none" }}>
+            <div id="auth-contact-email-wrap">
               <div className="auth-form-group">
                 <label className="auth-label" htmlFor="auth-email">E-mail ünvanı</label>
                 <input ref={emailRef} type="email" id="auth-email" className={`auth-input${shakeCls("auth-email")}`} placeholder="nümunə@mail.com" autoComplete="email" />
               </div>
             </div>
-            <button className="auth-btn-primary" onClick={next}>Kodu göndər</button>
+            <button className="auth-btn-primary" onClick={next} disabled={busy}>{busy ? "Göndərilir…" : "Kodu göndər"}</button>
           </div>
 
           {/* STEP 5: OTP */}
@@ -297,7 +412,7 @@ export function StoreOnboarding() {
             <p className="auth-step-sub" id="auth-otp-sub">{otpTarget ? `"${otpTarget}" ünvanına göndərilən 6 rəqəmli kodu daxil edin.` : "Hesabınıza göndərilən 6 rəqəmli kodu daxil edin."}</p>
             <div className={`auth-otp-wrap${shakeCls("auth-otp")}`}><OtpInput ref={otpRef} /></div>
             <div className="auth-otp-actions">
-              <button className="auth-btn-primary" onClick={next}>İrəli <IconArrowRight /></button>
+              <button className="auth-btn-primary" onClick={next} disabled={busy}>{busy ? "Yoxlanılır…" : <>İrəli <IconArrowRight /></>}</button>
               <button className="auth-btn-ghost" onClick={() => setOtpHelp(true)}>Kod almadım</button>
             </div>
             <div className="auth-otp-links">
@@ -339,7 +454,7 @@ export function StoreOnboarding() {
               <span className="auth-checkbox-custom"></span>
               <span className="auth-checkbox-text">Məni xatırla</span>
             </label>
-            <button className="auth-btn-primary" onClick={next}>İrəli</button>
+            <button className="auth-btn-primary" onClick={next} disabled={busy}>{busy ? "Hesab yaradılır…" : "Hesabı yarat"}</button>
           </div>
 
           {/* STEP 7: Avatar */}
@@ -361,26 +476,21 @@ export function StoreOnboarding() {
                 <IconGallery />
                 Qalereyadan seç
               </label>
-              <button className="auth-avatar-option-btn" type="button">
+              <label className="auth-avatar-option-btn" htmlFor="auth-camera-input">
                 <IconTakePhoto />
                 Şəkil çək
-              </button>
+              </label>
             </div>
             <input
               ref={avatarInput}
               type="file"
               id="auth-file-input"
-              accept="image/*"
+              accept="image/jpeg,image/png,image/webp"
               style={{ display: "none" }}
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (!file) return;
-                const reader = new FileReader();
-                reader.onload = (ev) => setAvatar(String(ev.target?.result));
-                reader.readAsDataURL(file);
-              }}
+              onChange={(e) => { pickAvatar(e.target.files?.[0]); e.target.value = ""; }}
             />
-            <button className="auth-btn-primary" onClick={next}>Şəkil yüklə</button>
+            <input type="file" id="auth-camera-input" accept="image/jpeg,image/png,image/webp" capture="user" style={{ display: "none" }} onChange={(e) => { pickAvatar(e.target.files?.[0]); e.target.value = ""; }} />
+            <button className="auth-btn-primary" onClick={() => (avatar ? next() : avatarInput.current?.click())} disabled={busy}>{busy ? "Yüklənir…" : avatar ? "İrəli" : "Şəkil yüklə"}</button>
             <button className="auth-btn-ghost" onClick={next}>Keç</button>
           </div>
 
@@ -408,7 +518,7 @@ export function StoreOnboarding() {
               <IconInfo />
               <p>Seçdiyiniz bölgə mağazanızın əsas yerləşmə yeri olacaq. Çatdırılma zonalarını sonradan tənzimləmək mümkündür.</p>
             </div>
-            <button className="auth-btn-primary" onClick={next}>Mağazanı yarat</button>
+            <button className="auth-btn-primary" onClick={next} disabled={busy}>{busy ? "Saxlanılır…" : "Davam et"}</button>
           </div>
 
           {/* STEP 9: Success */}
@@ -418,8 +528,8 @@ export function StoreOnboarding() {
               <div className="auth-success-icon">
                 <IconSuccess />
               </div>
-              <h2 className="auth-success-title" id="auth-success-title">Təkrar xoş gəldin, {brand.trim() || "mağaza"}</h2>
-              <p className="auth-success-sub" id="auth-success-sub">Qeydiyyatı uğurla tamamladın</p>
+              <h2 className="auth-success-title" id="auth-success-title">Xoş gəldin, {brand.trim() || "mağaza"}</h2>
+              <p className="auth-success-sub" id="auth-success-sub">Mağazan hazırdır. İlk məhsulunu əlavə et!</p>
               <div className="auth-success-stats">
                 <div className="auth-success-stat"><span className="auth-success-stat-num">0</span><span className="auth-success-stat-lbl">Məhsul</span></div>
                 <div className="auth-success-stat-divider"></div>
@@ -427,11 +537,37 @@ export function StoreOnboarding() {
                 <div className="auth-success-stat-divider"></div>
                 <div className="auth-success-stat"><span className="auth-success-stat-num" id="auth-success-region-stat">{region}</span><span className="auth-success-stat-lbl">Bölgə</span></div>
               </div>
-              <button className="auth-btn-gradient auth-btn-start" onClick={close}>
+              <button className="auth-btn-gradient auth-btn-start" onClick={finish}>
                 <IconRocket />
                 Başla
               </button>
             </div>
+          </div>
+
+          {/* RESET 1: e-mail */}
+          <div className={stepCls("r1")} id="auth-step-r1">
+            <h2 className="auth-step-title">Şifrəni bərpa et</h2>
+            <p className="auth-step-sub">Hesabınızın e-mail ünvanını yazın, ora 6 rəqəmli kod göndərəcəyik.</p>
+            <div className="auth-form-group">
+              <label className="auth-label" htmlFor="reset-email">E-mail ünvanı</label>
+              <input type="email" id="reset-email" className={`auth-input${shakeCls("reset-email")}`} placeholder="nümunə@mail.com" autoComplete="email" value={resetEmail} onChange={(e) => setResetEmail(e.target.value)} />
+            </div>
+            <button className="auth-btn-primary" onClick={sendResetCode} disabled={busy}>{busy ? "Göndərilir…" : "Kodu göndər"}</button>
+          </div>
+
+          {/* RESET 2: code + new password */}
+          <div className={stepCls("r2")} id="auth-step-r2">
+            <h2 className="auth-step-title">Yeni şifrə</h2>
+            <p className="auth-step-sub">&quot;{resetEmail}&quot; ünvanına göndərilən kodu və yeni şifrəni daxil edin.</p>
+            <div className="auth-form-group">
+              <label className="auth-label" htmlFor="reset-code">Kod</label>
+              <input type="text" inputMode="numeric" autoComplete="one-time-code" maxLength={6} id="reset-code" className={`auth-input${shakeCls("reset-code")}`} placeholder="123456" value={resetCode} onChange={(e) => setResetCode(e.target.value.replace(/\D/g, ""))} />
+            </div>
+            <div className="auth-form-group">
+              <label className="auth-label" htmlFor="reset-pw">Yeni şifrə</label>
+              <input type="password" id="reset-pw" className={`auth-input${shakeCls("reset-pw")}`} placeholder="Ən azı 8 simvol, hərf və rəqəm" autoComplete="new-password" value={resetPw} onChange={(e) => setResetPw(e.target.value)} />
+            </div>
+            <button className="auth-btn-primary" onClick={submitReset} disabled={busy}>{busy ? "Saxlanılır…" : "Şifrəni yenilə"}</button>
           </div>
 
         </div>{/* /auth-steps-wrap */}
@@ -447,7 +583,7 @@ export function StoreOnboarding() {
             <div className="auth-sub-options">
               <button className="auth-sub-option" type="button" onClick={() => { resendOtp(); setOtpHelp(false); }}>Təsdiq kodunu yenidən göndər</button>
               <button className="auth-sub-option" type="button" onClick={() => { setOtpHelp(false); prev(); }}>E-mail adresini dəyişdir</button>
-              <button className="auth-sub-option" type="button" onClick={() => { setOtpHelp(false); setContact("phone"); prev(); }}>Əlaqə nömrəsi ilə təsdiqlə</button>
+              <button className="auth-sub-option" type="button" onClick={() => { setOtpHelp(false); toast("Spam / Promotions qovluğunu da yoxlayın"); }}>Spam qovluğunu yoxla</button>
             </div>
           </div>
         </div>

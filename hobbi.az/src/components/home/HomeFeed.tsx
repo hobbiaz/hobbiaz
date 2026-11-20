@@ -18,7 +18,8 @@ function ProductGrid({ id, items }: { id: string; items: Product[] }) {
 }
 
 export function HomeFeed() {
-  const { products, category, filterCategory, resetCategory, openModal, query } = useUI();
+  const { products, category, filterCategory, resetCategory, openModal, openAuth, query, user, backend, hasMore, loadMore, feedLoading } = useUI();
+  const hasStore = Boolean(user?.store);
   const showAll = category === "all" && !query;
   const showEverything = () => {
     resetCategory();
@@ -47,7 +48,12 @@ export function HomeFeed() {
             <Link href="/" onClick={() => resetCategory()}>Təmizlə</Link>
           </div>
         )}
-        {products.length === 0 ? (
+        {backend === "offline" && (
+          <p style={{ fontSize: ".78rem", color: "var(--outline)", margin: "0 0 .5rem" }}>Demo rejim: server/baza qoşulmayıb, nümunə məhsullar göstərilir.</p>
+        )}
+        {products.length === 0 && (feedLoading || backend === "checking") ? (
+          <p style={{ color: "var(--outline)", padding: "2rem", textAlign: "center" }}>Yüklənir…</p>
+        ) : products.length === 0 ? (
           <div className="product-grid-masonry" id="products-grid">
             <p style={{ color: "var(--outline)", padding: "2rem", textAlign: "center", columns: "initial" }}>
               {query ? "Heç nə tapılmadı. Başqa söz yoxlayın." : "Bu kateqoriyada məhsul tapılmadı."}
@@ -91,17 +97,23 @@ export function HomeFeed() {
         <ProductGrid id="products-grid-2" items={showAll ? products.slice(half) : []} />
       </div>
 
+      {hasMore && (
+        <div style={{ display: "flex", justifyContent: "center", margin: "0 0 1.5rem" }}>
+          <button className="store-cta-btn" onClick={loadMore} disabled={feedLoading}>{feedLoading ? "Yüklənir…" : "Daha çox məhsul"}</button>
+        </div>
+      )}
+
       <div className="store-cta-banner fade-up">
         <div className="store-cta-left">
           <div className="store-cta-icon" style={{ background: "transparent", width: 48, height: 48 }}>
             <IconStoreCta />
           </div>
           <div>
-            <div className="store-cta-title">Yaradıcılığını gəlirə çevir!</div>
-            <div className="store-cta-sub">Cəmi 2 dəqiqəyə öz onlayn mağazanı yarat və satışa başla.</div>
+            <div className="store-cta-title">{hasStore ? "Yeni məhsulun var?" : "Yaradıcılığını gəlirə çevir!"}</div>
+            <div className="store-cta-sub">{hasStore ? "Şəkil çək, qiymət yaz: 2 dəqiqəyə elan hazırdır." : "Cəmi 2 dəqiqəyə öz onlayn mağazanı yarat və satışa başla."}</div>
           </div>
         </div>
-        <button className="store-cta-btn" onClick={() => openModal("auth")}>Mağaza Aç</button>
+        <button className="store-cta-btn" onClick={() => (hasStore ? openModal("listing") : openAuth("register"))}>{hasStore ? "Elan yerləşdir" : "Mağaza Aç"}</button>
       </div>
     </div>
   );

@@ -8,19 +8,19 @@ import { listingSchema } from "@/lib/validators";
 
 describe("RateLimiter", () => {
   it("allows up to the limit, then blocks until the window resets", () => {
-    const rl = new RateLimiter(2, 1000);
-    expect(rl.hit("a", 0)).toBe(true);
-    expect(rl.hit("a", 10)).toBe(true);
-    expect(rl.hit("a", 20)).toBe(false);
-    expect(rl.hit("b", 20)).toBe(true); // keys are independent
-    expect(rl.hit("a", 1001)).toBe(true); // new window
+    const rl = new RateLimiter("t", 2, 1000);
+    expect(rl.hitLocal("a", 0)).toBe(true);
+    expect(rl.hitLocal("a", 10)).toBe(true);
+    expect(rl.hitLocal("a", 20)).toBe(false);
+    expect(rl.hitLocal("b", 20)).toBe(true); // keys are independent
+    expect(rl.hitLocal("a", 1001)).toBe(true); // new window
   });
   it("reset clears a key", () => {
-    const rl = new RateLimiter(1, 1000);
-    rl.hit("a", 0);
-    expect(rl.hit("a", 1)).toBe(false);
-    rl.reset("a");
-    expect(rl.hit("a", 2)).toBe(true);
+    const rl = new RateLimiter("t", 1, 1000);
+    rl.hitLocal("a", 0);
+    expect(rl.hitLocal("a", 1)).toBe(false);
+    void rl.reset("a");
+    expect(rl.hitLocal("a", 2)).toBe(true);
   });
 });
 

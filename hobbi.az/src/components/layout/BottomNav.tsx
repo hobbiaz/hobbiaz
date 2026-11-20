@@ -24,7 +24,7 @@ const ITEMS: Item[] = [
   { page: "home", label: "Ana Səhifə", outline: <IconHomeOutline />, filled: <IconHomeFilled />, reels: <IconBnReelsHome /> },
   { page: "video", label: "Video", outline: <IconVideoOutline />, filled: <IconVideoFilled />, reels: <IconBnReelsVideo /> },
   { page: "search", label: "Axtar", outline: <IconSearchOutline />, filled: <IconSearchFilled />, reels: <IconBnReelsSearch /> },
-  { page: "messages", label: "Mesajlar", outline: <IconMessagesOutline />, filled: <IconMessagesFilled />, reels: <IconBnReelsMessages />, dot: true },
+  { page: "messages", label: "Mesajlar", outline: <IconMessagesOutline />, filled: <IconMessagesFilled />, reels: <IconBnReelsMessages /> },
   { page: "profile", label: "Profil", outline: <IconBnProfile />, filled: <IconBnProfile />, reels: <IconBnReelsProfile /> },
 ];
 
@@ -43,7 +43,7 @@ function useIsDarkTheme(theme: string) {
 /** Phone tab bar (hidden on desktop by CSS). */
 export function BottomNav() {
   const page = useCurrentPage();
-  const { productId, theme, resetCategory } = useUI();
+  const { productId, theme, resetCategory, unreadMessages } = useUI();
   const isDark = useIsDarkTheme(theme);
   const onReels = page === "video";
   // While the product detail panel is open only "home" looks active (legacy updateNavbarForDetail).
@@ -66,7 +66,7 @@ export function BottomNav() {
               <span className="nav-icon icon-outline">{item.outline}</span>
               <span className="nav-icon icon-filled">{item.filled}</span>
               <span className="bn-label">{item.label}</span>
-              {item.dot && <div className="bottom-nav-dot" />}
+              {item.page === "messages" && unreadMessages > 0 && <div className="bottom-nav-dot" aria-label={`${unreadMessages} oxunmamış söhbət`} />}
             </>
           )}
         </Link>

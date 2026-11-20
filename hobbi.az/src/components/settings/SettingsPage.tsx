@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useUI } from "@/providers/UIProvider";
+import { api } from "@/lib/api-client";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { readJSON, writeStorage } from "@/lib/storage-client";
 import { DEFAULT_PROFILE, SETTINGS_ACTIVITIES, SETTINGS_BLOCKED, SETTINGS_META, type SettingsSection } from "@/data/settings";
@@ -11,6 +12,7 @@ import { IconBloklanmis, IconBloklanmis2, IconBloklanmisHesablar, IconCihazlar, 
 import { pressable } from "@/lib/a11y";
 
 const PROFILE_KEY = "hobbi_profile";
+const SUPPORT_EMAIL = process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "destek@hobbi.az";
 const loadProfile = (): ProfileData => ({ ...DEFAULT_PROFILE, ...readJSON<Partial<ProfileData>>(PROFILE_KEY, {}) });
 
 /**
@@ -19,7 +21,7 @@ const loadProfile = (): ProfileData => ({ ...DEFAULT_PROFILE, ...readJSON<Partia
  */
 export function SettingsPage() {
   const router = useRouter();
-  const { toast, openModal, theme, setTheme, lang, setLang } = useUI();
+  const { toast, openAuth, theme, setTheme, lang, setLang, user, backend, logout: signOut, refreshUser } = useUI();
   const isDesktop = useMediaQuery("(min-width: 900px)");
   const [section, setSection] = useState<SettingsSection>("account");
   const [subPanel, setSubPanel] = useState<SettingsSection | null>(null);
@@ -30,8 +32,21 @@ export function SettingsPage() {
   const [supportMsg, setSupportMsg] = useState("");
   const meta = SETTINGS_META[section];
 
+  // Signed in: the profile comes from the account; offline demo: from localStorage.
   useEffect(() => {
-    setProfile(loadProfile());
+    if (!user) return;
+    setProfile({
+      name: user.store?.name ?? user.name,
+      email: user.email,
+      phone: user.store?.phone ?? user.phone ?? "",
+      location: user.store?.region ?? user.city ?? "",
+      bio: user.store?.bio ?? user.bio ?? "",
+    });
+  }, [user]);
+  useEffect(() => {
+    if (backend === "offline") setProfile(loadProfile());
+  }, [backend]);
+  useEffect(() => {
     document.body.classList.add("settings-open");
     return () => document.body.classList.remove("settings-open");
   }, []);
@@ -48,26 +63,49 @@ export function SettingsPage() {
   const navCls = (name: SettingsSection) => `sp-desk-nav-item${section === name ? " active" : ""}`;
   const paneCls = (name: SettingsSection) => `sp-desk-pane${section === name ? " active" : ""}`;
   const subCls = (name: SettingsSection) => `sub-panel${subPanel === name ? " open" : ""}`;
-  const openStore = () => { openModal("auth"); close(); };
+  const openStore = () => { if (user) router.push("/profile"); else { openAuth("register"); close(); } };
   const logout = () => {
+    if (!user) { openAuth("login"); return; }
     if (!confirm("Çıxış etmək istədiyinizə əminsiniz?")) return;
-    toast("Çıxış edildi. Görüşənədək! 👋");
-    close();
+    void signOut();
   };
   const startEdit = () => { setDraft(profile); setEditing(true); };
   const saveProfile = () => {
     const next = { ...draft, name: draft.name.trim(), email: draft.email.trim(), phone: draft.phone.trim(), location: draft.location.trim(), bio: draft.bio.trim() };
     if (!next.name) { toast("Ad daxil edin"); return; }
-    writeStorage(PROFILE_KEY, JSON.stringify(next));
-    setProfile(next);
-    setEditing(false);
-    toast("Məlumatlar yadda saxlandı ✅");
+    if (!user) {
+      if (backend === "online") { openAuth("login"); return; }
+      writeStorage(PROFILE_KEY, JSON.stringify(next));
+      setProfile(next);
+      setEditing(false);
+      toast("Məlumatlar yadda saxlandı ✅");
+      return;
+    }
+    void (async () => {
+      try {
+        if (user.store) {
+          // Store name is the brand (unique) and is not renamed here.
+          await api("/api/store", { method: "PATCH", body: { phone: next.phone || null, region: next.location || undefined, bio: next.bio || null } });
+          await api("/api/me", { method: "PATCH", body: { name: user.name, phone: next.phone || null, city: next.location || null, bio: next.bio || null } });
+        } else {
+          await api("/api/me", { method: "PATCH", body: { name: next.name, phone: next.phone || null, city: next.location || null, bio: next.bio || null } });
+        }
+        await refreshUser();
+        setEditing(false);
+        toast("Məlumatlar yadda saxlandı ✅");
+      } catch (e) {
+        toast(e instanceof Error ? e.message : "Xəta");
+      }
+    })();
   };
   const field = (key: keyof ProfileData) => ({ value: draft[key], onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setDraft({ ...draft, [key]: e.target.value }) });
   const submitSupport = () => {
     if (!supportMsg.trim()) { toast("Mesaj yazın"); return; }
+    // No support inbox yet: open the user's mail app addressed to the team.
+    const subject = encodeURIComponent("hobbi.az dəstək");
+    const body = encodeURIComponent(supportMsg.trim() + (user ? `\n\n— ${user.email}` : ""));
+    window.location.href = `mailto:${SUPPORT_EMAIL}?subject=${subject}&body=${body}`;
     setSupportMsg("");
-    toast("Müraciətiniz göndərildi ✅");
   };
   const langLabel = lang === "az" ? "Azərbaycan" : "Русский";
 
@@ -246,8 +284,8 @@ export function SettingsPage() {
             </div>
             </div>
             <div id="sp-account-edit" className="sp-account-edit-form" style={{ display: editing ? "block" : "none" }}>
-              <div className="l-field"><label className="l-label">Ad Soyad</label><input className="l-input" id="sp-profile-name-input" type="text" {...field("name")} /></div>
-              <div className="l-field"><label className="l-label">E-poçt</label><input className="l-input" id="sp-profile-email-input" type="email" {...field("email")} /></div>
+              <div className="l-field"><label className="l-label">Ad Soyad</label><input className="l-input" id="sp-profile-name-input" type="text" {...field("name")} readOnly={Boolean(user?.store)} title={user?.store ? "Mağaza adı (marka) dəyişdirilmir" : undefined} /></div>
+              <div className="l-field"><label className="l-label">E-poçt</label><input className="l-input" id="sp-profile-email-input" type="email" {...field("email")} readOnly={Boolean(user)} title={user ? "E-poçt dəyişdirilə bilməz" : undefined} /></div>
               <div className="l-field"><label className="l-label">Telefon</label><input className="l-input" id="sp-profile-phone-input" type="tel" {...field("phone")} /></div>
               <div className="l-field"><label className="l-label">Yer</label><input className="l-input" id="sp-profile-location-input" type="text" {...field("location")} /></div>
               <div className="l-field"><label className="l-label">Bio</label><textarea className="l-textarea" id="sp-profile-bio-input" rows={3} {...field("bio")} /></div>

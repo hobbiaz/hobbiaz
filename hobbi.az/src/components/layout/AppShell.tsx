@@ -9,7 +9,7 @@ import { GlobalOverlays } from "@/components/overlays/GlobalOverlays";
 
 /**
  * Page chrome from the legacy SPA: top bar, hover sidebar, phone tab bar and every
- * overlay (modals, search, product detail). Plain scaffold pages under /dev skip it.
+ * overlay (modals, search, product detail).
  */
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname() ?? "/";
@@ -18,8 +18,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [pathname]);
-
-  if (pathname.startsWith("/dev")) return <>{children}</>;
 
   return (
     <>

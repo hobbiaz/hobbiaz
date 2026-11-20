@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { PRODUCTS } from "@/data/products";
 import { useUI } from "@/providers/UIProvider";
 import { applyFilters, DEFAULT_FILTERS, EMPTY_FILTERS, type Feature, type FilterState, type PriceChip } from "@/lib/filters";
 import type { CategorySlug } from "@/types";
@@ -46,14 +45,14 @@ function Section({ label, open, onToggle, children }: { label: string; open: boo
 }
 
 export function FilterModal() {
-  const { modal, closeModal, setFilteredProducts, toast } = useUI();
+  const { modal, closeModal, setFilteredProducts, toast, catalog } = useUI();
   const [f, setF] = useState<FilterState>(DEFAULT_FILTERS);
   const [open, setOpen] = useState<Record<SectionKey, boolean>>({ cat: true, price: true, feat: true, material: false });
   const flip = (k: SectionKey) => setOpen((o) => ({ ...o, [k]: !o[k] }));
-  const count = useMemo(() => applyFilters(PRODUCTS, f).length, [f]);
+  const count = useMemo(() => applyFilters(catalog, f).length, [catalog, f]);
 
   const apply = () => {
-    const list = applyFilters(PRODUCTS, f);
+    const list = applyFilters(catalog, f);
     setFilteredProducts(list);
     closeModal();
     toast(`Filtrlər tətbiq edildi (${list.length} məhsul)`);

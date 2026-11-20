@@ -40,7 +40,8 @@ export function route<P = Record<string, never>>(fn: (req: Request, ctx: Ctx<P>)
       if (e instanceof HttpError) return NextResponse.json({ error: e.message }, { status: e.status });
       if (e instanceof ZodError) return NextResponse.json({ error: e.issues[0]?.message ?? "Yanlış məlumat", issues: e.issues }, { status: 400 });
       if (e instanceof SyntaxError) return NextResponse.json({ error: "Sorğunun gövdəsi JSON deyil" }, { status: 400 });
-      if (e instanceof Prisma.PrismaClientInitializationError) {
+      // Not configured (init error) or unreachable / dropped connection (P1xxx codes).
+      if (e instanceof Prisma.PrismaClientInitializationError || (e instanceof Prisma.PrismaClientKnownRequestError && e.code.startsWith("P1"))) {
         console.error("[db] connection failed — is DATABASE_URL set in .env?", e.message);
         return NextResponse.json({ error: "Verilənlər bazası əlçatan deyil" }, { status: 503 });
       }

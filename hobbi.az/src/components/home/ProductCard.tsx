@@ -2,11 +2,13 @@
 
 import type { Product } from "@/types";
 import { useUI } from "@/providers/UIProvider";
+import { useProductActions } from "@/hooks/useProductActions";
 import { ImageWithFallback } from "@/components/ui/ImageWithFallback";
 import { IconCart, IconHeartFilled, IconHeartOutline } from "@/components/icons";
 
 export function ProductCard({ product: p, index }: { product: Product; index: number }) {
-  const { openProduct, toast, isFavorite, toggleFavorite } = useUI();
+  const { openProduct, isFavorite, toggleFavorite } = useUI();
+  const { order, interested } = useProductActions();
   const liked = isFavorite(p.id);
 
   return (
@@ -18,7 +20,7 @@ export function ProductCard({ product: p, index }: { product: Product; index: nu
         if (e.target === e.currentTarget && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); openProduct(p.id); }
       }}
       tabIndex={0}
-      aria-label={`${p.title}, ${p.price || "45"} ₼`}
+      aria-label={`${p.title}, ${p.price} ₼`}
     >
       <div className="card-image-wrapper product-img-wrap">
         <ImageWithFallback
@@ -49,16 +51,17 @@ export function ProductCard({ product: p, index }: { product: Product; index: nu
       <h3 className="card-title product-title">{p.title}</h3>
       <div className="card-price-row product-footer">
         <div className="card-prices">
-          <span className="price-current product-price">{p.price || "45"} ₼</span>
+          <span className="price-current product-price">{p.price} ₼</span>
           {p.oldPrice && <span className="price-old">{p.oldPrice} ₼</span>}
         </div>
         <button
           type="button"
           className="cart-icon"
-          aria-label="Səbətə əlavə et"
+          aria-label="Sifariş et"
+          title="Sifariş et"
           onClick={(e) => {
             e.stopPropagation();
-            toast("Səbətə əlavə edildi 🛒");
+            void order(p);
           }}
         >
           <IconCart />
@@ -68,7 +71,7 @@ export function ProductCard({ product: p, index }: { product: Product; index: nu
           className="btn-interest"
           onClick={(e) => {
             e.stopPropagation();
-            toast('Mesaj göndərildi! 💬 "Bu məhsul ilə maraqlanıram"');
+            void interested(p);
           }}
         >
           Maraqlan

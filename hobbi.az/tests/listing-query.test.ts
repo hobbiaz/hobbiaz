@@ -10,9 +10,13 @@ describe("buildListingQuery", () => {
     expect(buildListingQuery({ min: "10", max: "20.5" }).where.priceCents).toEqual({ gte: 1000, lte: 2050 });
   });
   it("applies search, category, sort and pagination", () => {
-    const q = buildListingQuery({ q: "güldan", category: "el-isi", sort: "price_asc", page: "3" });
-    expect(q.where.OR).toHaveLength(3); expect(q.where.category).toEqual({ slug: "el-isi" });
+    const q = buildListingQuery({ q: "saxsı güldan", category: "keramika", sort: "price_asc", page: "3" });
+    expect(q.where.AND).toHaveLength(2); expect(q.where.category).toEqual({ slug: "keramika" });
     expect(q.orderBy).toEqual({ priceCents: "asc" }); expect(q.skip).toBe(2 * PAGE_SIZE);
+  });
+  it("ignores the 'all' category and filters discounts", () => {
+    const q = buildListingQuery({ category: "all", discount: "1" });
+    expect(q.where.category).toBeUndefined(); expect(q.where.oldPriceCents).toEqual({ not: null });
   });
   it("falls back to defaults on invalid params", () => {
     const q = buildListingQuery({ sort: "hack", page: "-5" });

@@ -4,7 +4,8 @@ export type CategorySlug = (typeof CATEGORY_SLUGS)[number];
 export const isCategorySlug = (v: unknown): v is CategorySlug => (CATEGORY_SLUGS as readonly unknown[]).includes(v);
 
 export interface Product {
-  id: number;
+  /** Database id (cuid) — or "demo-N" for the built-in offline catalogue. */
+  id: string;
   title: string;
   /** Price in AZN, as a plain number string ("45"). */
   price: string;
@@ -20,15 +21,54 @@ export interface Product {
   images: string[];
   desc: string;
   liked?: boolean;
+  // Present when the product comes from the API:
+  ownerId?: string;
+  storeSlug?: string;
+  sellerAvatar?: string;
+  city?: string;
+  createdAt?: string;
+  status?: "DRAFT" | "PUBLISHED" | "REMOVED";
+  favoriteCount?: number;
+  reviewCount?: number;
+  instagram?: string;
+  tiktok?: string;
+  isDemo?: boolean;
+}
+
+/** The signed-in user as returned by GET /api/me. */
+export interface SessionUser {
+  id: string;
+  email: string;
+  name: string;
+  role: "BUYER" | "SELLER" | "ADMIN";
+  phone: string | null;
+  city: string | null;
+  bio: string | null;
+  avatarUrl: string | null;
+  store: {
+    id: string;
+    name: string;
+    slug: string;
+    categorySlug: string;
+    region: string;
+    avatarUrl: string | null;
+    bio: string | null;
+    phone: string | null;
+    instagram: string | null;
+    tiktok: string | null;
+  } | null;
 }
 
 export interface Review {
-  id: number;
+  id: number | string;
   user: string;
   avatar: string;
   text: string;
   images: string[];
   replies: { user: string; text: string }[];
+  rating?: number;
+  createdAt?: string;
+  mine?: boolean;
 }
 
 export interface Reel {

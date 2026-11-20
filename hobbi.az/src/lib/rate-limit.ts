@@ -1,16 +1,17 @@
+import { upstashConfigured } from "./env";
+
 /**
- * Fixed-window, in-memory rate limiter. It is per server instance: good enough for a
- * single Node process / dev, but use a shared store (e.g. Redis/Upstash) when the app
- * runs on several instances or serverless.
+ * Fixed-window rate limiter. With UPSTASH_REDIS_REST_* set it counts in Redis (shared by
+ * every server instance, required on Vercel); otherwise it counts in this process's memory.
  */
 type Bucket = { count: number; resetAt: number };
 
 export class RateLimiter {
   private buckets = new Map<string, Bucket>();
-  constructor(private limit: number, private windowMs: number) {}
+  constructor(private name: string, private limit: number, private windowMs: number) {}
 
-  /** Returns true when the call is allowed, false when the key is over its limit. */
-  hit(key: string, now = Date.now()): boolean {
+  /** In-memory check (synchronous; used directly by tests). */
+  hitLocal(key: string, now = Date.now()): boolean {
     const b = this.buckets.get(key);
     if (!b || b.resetAt <= now) {
       this.buckets.set(key, { count: 1, resetAt: now + this.windowMs });
@@ -21,11 +22,43 @@ export class RateLimiter {
     return b.count <= this.limit;
   }
 
-  reset(key: string) { this.buckets.delete(key); }
+  /** Returns true when the call is allowed. Fails open if Redis is unreachable. */
+  async hit(key: string): Promise<boolean> {
+    if (!upstashConfigured()) return this.hitLocal(key);
+    try {
+      const count = await redisIncr(`rl:${this.name}:${key}`, Math.ceil(this.windowMs / 1000));
+      return count <= this.limit;
+    } catch (e) {
+      console.error("[rate-limit] redis error, falling back to memory", e);
+      return this.hitLocal(key);
+    }
+  }
+
+  async reset(key: string) {
+    this.buckets.delete(key);
+    if (upstashConfigured()) await redis(["DEL", `rl:${this.name}:${key}`]).catch(() => {});
+  }
 
   private prune(now: number) {
     for (const [k, b] of this.buckets) if (b.resetAt <= now) this.buckets.delete(k);
   }
+}
+
+async function redis(command: (string | number)[]): Promise<unknown> {
+  const res = await fetch(process.env.UPSTASH_REDIS_REST_URL!, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${process.env.UPSTASH_REDIS_REST_TOKEN}` },
+    body: JSON.stringify(command),
+    cache: "no-store",
+  });
+  if (!res.ok) throw new Error(`upstash ${res.status}`);
+  return ((await res.json()) as { result: unknown }).result;
+}
+
+async function redisIncr(key: string, ttlSeconds: number): Promise<number> {
+  const count = Number(await redis(["INCR", key]));
+  if (count === 1) await redis(["EXPIRE", key, ttlSeconds]);
+  return count;
 }
 
 export function clientIp(req: Request): string {
@@ -33,7 +66,10 @@ export function clientIp(req: Request): string {
   return (fwd?.split(",")[0] ?? req.headers.get("x-real-ip") ?? "local").trim();
 }
 
-/** 10 login attempts / 15 min per IP+email, 5 sign-ups / hour per IP, 60 uploads / hour per user. */
-export const loginLimiter = new RateLimiter(10, 15 * 60_000);
-export const registerLimiter = new RateLimiter(5, 60 * 60_000);
-export const uploadLimiter = new RateLimiter(60, 60 * 60_000);
+export const loginLimiter = new RateLimiter("login", 10, 15 * 60_000);
+export const registerLimiter = new RateLimiter("register", 5, 60 * 60_000);
+export const uploadLimiter = new RateLimiter("upload", 60, 60 * 60_000);
+/** OTP e-mails: 5 per hour per address and 20 per hour per IP. */
+export const otpEmailLimiter = new RateLimiter("otp-email", 5, 60 * 60_000);
+export const otpIpLimiter = new RateLimiter("otp-ip", 20, 60 * 60_000);
+export const writeLimiter = new RateLimiter("write", 60, 60_000);

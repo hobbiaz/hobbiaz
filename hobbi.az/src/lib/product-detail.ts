@@ -1,7 +1,8 @@
 import type { Product, Review } from "@/types";
+import { timeAgo } from "./api-client";
 
 export interface ProductDetail {
-  id: number;
+  id: string;
   title: string;
   images: string[];
   phone: string;
@@ -9,16 +10,17 @@ export interface ProductDetail {
   location: string;
   price: string;
   oldPrice: string | null;
-  rating: string;
-  creator: { name: string; avatar: string };
+  rating: string | null;
+  creator: { name: string; avatar: string; slug?: string; ownerId?: string; instagram?: string; tiktok?: string };
   description: string;
-  reviews: Review[];
+  /** Built-in reviews for demo products; real ones are loaded from the API. */
+  demoReviews: Review[];
   likesCount: number;
 }
 
-const SELLER_AVATAR = "https://images.unsplash.com/photo-1607746882042-944635dfe10e?w=60&h=60&fit=crop&crop=face";
+const DEMO_SELLER_AVATAR = "https://images.unsplash.com/photo-1607746882042-944635dfe10e?w=60&h=60&fit=crop&crop=face";
 
-const DEFAULT_REVIEWS: Review[] = [
+const DEMO_REVIEWS: Review[] = [
   {
     id: 1, user: "Aynur", avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=60&h=60&fit=crop&crop=face",
     text: "Çox gözəl məhsul, gözləntilərimə tam cavab verdi!", images: [], replies: [],
@@ -30,22 +32,24 @@ const DEFAULT_REVIEWS: Review[] = [
 ];
 
 /** Expands a catalogue product into the richer model the detail panel renders. */
-export function toDetail(p: Product): ProductDetail {
+export function toDetail(p: Product & { rating?: number | null }): ProductDetail {
+  const demo = p.id.startsWith("demo-");
+  const seed = [...p.id].reduce((n, c) => n + c.charCodeAt(0), 0);
   return {
     id: p.id,
     title: p.title,
-    images: p.images?.length ? p.images : [p.photo],
-    phone: p.phone || "+994 50 000 00 00",
-    postedAt: "2 saat əvvəl",
-    location: "Bakı, Azərbaycan",
-    price: `${p.price || "45"} AZN`,
+    images: p.images?.length ? p.images : p.photo ? [p.photo] : [],
+    phone: p.phone,
+    postedAt: demo ? "2 saat əvvəl" : timeAgo(p.createdAt),
+    location: p.city ? `${p.city}, Azərbaycan` : "Azərbaycan",
+    price: `${p.price} AZN`,
     oldPrice: p.oldPrice ? `${p.oldPrice} AZN` : null,
-    rating: "5",
-    creator: { name: p.shop || "Hobbi.az", avatar: SELLER_AVATAR },
-    description: p.desc || `${p.title} — əl işi, unikal dizayn. Hər bir məhsul xüsusi hazırlanır.`,
-    reviews: DEFAULT_REVIEWS.map((r) => ({ ...r, replies: [...r.replies] })),
-    // deterministic stand-in for a real like counter (20–219)
-    likesCount: ((p.id * 37) % 200) + 20,
+    rating: demo ? "5" : p.rating ? String(p.rating) : null,
+    creator: { name: p.shop || "hobbi.az", avatar: demo ? DEMO_SELLER_AVATAR : p.sellerAvatar ?? "", slug: p.storeSlug, ownerId: p.ownerId, instagram: p.instagram, tiktok: p.tiktok },
+    description: p.desc,
+    demoReviews: demo ? DEMO_REVIEWS.map((r) => ({ ...r, replies: [...r.replies] })) : [],
+    // demo: deterministic stand-in counter; real: number of users who saved it
+    likesCount: demo ? (seed * 37) % 200 + 20 : p.favoriteCount ?? 0,
   };
 }
 
