@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useClickOutside } from "@/hooks/useClickOutside";
 import { useUI } from "@/providers/UIProvider";
 import { IconMakeProduct, IconPlusCircle, IconShareProduct } from "@/components/icons";
+import { pressable } from "@/lib/a11y";
 
 /** "+" menu in the top bar: publish a listing or request a custom-made product. */
 export function ShareMenu() {
@@ -40,11 +41,11 @@ export function ShareMenu() {
         <IconPlusCircle />
       </button>
       <div ref={dropRef} className={`share-dropdown${open ? " open" : ""}`} id="share-dropdown">
-        <div className="share-dropdown-item" onClick={() => { openModal("listing"); close(); }}>
+        <div {...pressable} className="share-dropdown-item" onClick={() => { openModal("listing"); close(); }}>
           <IconShareProduct />
           Məhsul Paylaş
         </div>
-        <div className="share-dropdown-item" onClick={() => { openModal("create"); close(); }}>
+        <div {...pressable} className="share-dropdown-item" onClick={() => { openModal("create"); close(); }}>
           <IconMakeProduct />
           Məhsul Hazırlat
         </div>

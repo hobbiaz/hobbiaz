@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { useUI } from "@/providers/UIProvider";
 import { IconCloseThin, IconUploadImage } from "@/components/icons";
 import { Modal } from "./Modal";
+import { pressable } from "@/lib/a11y";
 
 /** "Məhsul Hazırlat" — a buyer asks makers to produce a custom item. */
 export function CreateProductModal() {
@@ -37,7 +38,7 @@ export function CreateProductModal() {
         <div className="create-modal-divider" />
         <div className="create-field-group">
           <label className="create-field-label">Hazırlatmaq istədiyiniz məhsulun şəklini əlavə edin</label>
-          <div className="create-upload-zone" onClick={() => fileRef.current?.click()}>
+          <div {...pressable} className="create-upload-zone" onClick={() => fileRef.current?.click()}>
             <input
               ref={fileRef}
               type="file"

@@ -6,17 +6,22 @@ import { DEFAULT_AD, type AdData } from "@/lib/product-detail";
 import { readJSON, readStorage, writeStorage } from "@/lib/storage-client";
 import { useUI } from "@/providers/UIProvider";
 import { IconSponsoredCheck } from "@/components/icons";
+import { pressable } from "@/lib/a11y";
 
 const AD_KEY = "pd_ad_data";
 
-/** Sponsored tile; admins (localStorage isAdmin=true) can edit or remove it. */
+/**
+ * Sponsored tile. The edit/remove controls are a local design preview only: they show in
+ * development when localStorage isAdmin=true and never in a production build. Real
+ * admin rights must come from the server session (role ADMIN).
+ */
 function AdCard() {
-  const { toast } = useUI();
+  const { toast, openModal } = useUI();
   const [ad, setAd] = useState<AdData>(DEFAULT_AD);
   const [isAdmin, setIsAdmin] = useState(false);
   useEffect(() => {
     setAd(readJSON<AdData>(AD_KEY, DEFAULT_AD) ?? DEFAULT_AD);
-    setIsAdmin(readStorage("isAdmin") === "true");
+    setIsAdmin(process.env.NODE_ENV !== "production" && readStorage("isAdmin") === "true");
   }, []);
 
   const edit = () => {
@@ -36,13 +41,15 @@ function AdCard() {
   };
 
   return (
-    <div
+    <div {...pressable}
       className="pd-ad-card"
       id="pd-ad-card"
-      style={ad.link ? { cursor: "pointer" } : undefined}
+      style={{ cursor: "pointer" }}
       onClick={(e) => {
         if ((e.target as HTMLElement).classList.contains("pd-admin-btn")) return;
-        if (ad.link) window.open(ad.link, "_blank", "noopener");
+        // Only http(s) links open; the house ad (no link) starts store onboarding.
+        if (/^https?:\/\//i.test(ad.link)) window.open(ad.link, "_blank", "noopener");
+        else openModal("auth");
       }}
     >
       <div className="pd-ad-top">
@@ -76,7 +83,7 @@ export function Discovery({ productId, onOpen }: { productId: number; onOpen: (i
       <h2 className="pd-discovery-title">Bunları da sevə bilərsən.</h2>
       <div className="pd-masonry" id="pd-discovery-grid">
         {others.map((item) => (
-          <div className="pd-rec-card" key={item.id} onClick={() => onOpen(item.id)}>
+          <div key={item.id} {...pressable} className="pd-rec-card" onClick={() => onOpen(item.id)}>
             <img src={item.images[0] || item.photo} alt={item.title} loading="lazy" />
             <span className="pd-rec-price">{item.price} AZN</span>
           </div>

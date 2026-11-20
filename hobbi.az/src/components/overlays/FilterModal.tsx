@@ -6,6 +6,7 @@ import { useUI } from "@/providers/UIProvider";
 import { applyFilters, DEFAULT_FILTERS, EMPTY_FILTERS, type Feature, type FilterState, type PriceChip } from "@/lib/filters";
 import type { CategorySlug } from "@/types";
 import { IconArrowLeft, IconFilterApply } from "@/components/icons";
+import { pressable } from "@/lib/a11y";
 
 const CATEGORY_ROWS: { slug: CategorySlug; label: string; count: number }[] = [
   { slug: "zergerllik", label: "Zinət əşyaları", count: 210 },
@@ -35,7 +36,7 @@ const toggle = <T,>(list: T[], v: T) => (list.includes(v) ? list.filter((x) => x
 function Section({ label, open, onToggle, children }: { label: string; open: boolean; onToggle: () => void; children: React.ReactNode }) {
   return (
     <div className="filter-section">
-      <div className="filter-section-head" onClick={onToggle}>
+      <div {...pressable} className="filter-section-head" onClick={onToggle}>
         <span className="filter-section-label">{label}</span>
         <span className={`filter-chevron${open ? " open" : ""}`}>▼</span>
       </div>
@@ -78,8 +79,8 @@ export function FilterModal() {
         <div className="filter-body">
           <Section label="Kateqoriya" open={open.cat} onToggle={() => flip("cat")}>
             {CATEGORY_ROWS.map((row) => (
-              <div
-                key={row.slug}
+              <div key={row.slug}
+                {...pressable}
                 className={`filter-check-row${f.categories.includes(row.slug) ? " checked" : ""}`}
                 onClick={() => setF((s) => ({ ...s, categories: toggle(s.categories, row.slug) }))}
               >
@@ -89,7 +90,7 @@ export function FilterModal() {
               </div>
             ))}
             <div style={{ marginTop: ".25rem" }}>
-              <span className="filter-show-all" onClick={() => toast("Hamısı göstərilir")}>Hamısını göstər (6) ▾</span>
+              <span {...pressable} className="filter-show-all" onClick={() => toast("Hamısı göstərilir")}>Hamısını göstər (6) ▾</span>
             </div>
           </Section>
 
@@ -112,8 +113,8 @@ export function FilterModal() {
             </div>
             <div className="price-quick-chips">
               {PRICE_CHIPS.map((chip) => (
-                <div
-                  key={chip.value}
+                <div key={chip.value}
+                  {...pressable}
                   className={`price-q-chip${f.priceChips.includes(chip.value) ? " selected" : ""}`}
                   onClick={() => setF((s) => ({ ...s, priceChips: toggle(s.priceChips, chip.value) }))}
                 >
@@ -126,8 +127,8 @@ export function FilterModal() {
 
           <Section label="Özəlliklər" open={open.feat} onToggle={() => flip("feat")}>
             {FEATURES.map((ft) => (
-              <div
-                key={ft.value}
+              <div key={ft.value}
+                {...pressable}
                 className={`ozellik-row${f.features.includes(ft.value) ? " checked" : ""}`}
                 onClick={() => setF((s) => ({ ...s, features: toggle(s.features, ft.value) }))}
               >
@@ -138,7 +139,7 @@ export function FilterModal() {
           </Section>
 
           <div className="filter-section" style={{ borderBottom: "none" }}>
-            <div className="material-row-link" onClick={() => flip("material")}>
+            <div {...pressable} className="material-row-link" onClick={() => flip("material")}>
               <span className="material-row-icon">▧</span>
               <span className="material-row-text">Material</span>
               <span className="material-row-val">Hamısı</span>

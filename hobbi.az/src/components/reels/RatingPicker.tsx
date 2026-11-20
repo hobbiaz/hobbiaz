@@ -2,6 +2,7 @@
 
 import { IconReset } from "@/components/icons";
 import { PickerStar } from "./StarIcons";
+import { pressable } from "@/lib/a11y";
 
 export type RatingPhase = "enter" | "open" | "closing";
 
@@ -23,7 +24,7 @@ export function RatingPicker({
   onReset: () => void;
 }) {
   return (
-    <div
+    <div {...pressable}
       id={id}
       className={`${className} ${phase ? phaseClass[phase] : ""}`.trim() || undefined}
       aria-hidden={phase === null || phase === "closing"}

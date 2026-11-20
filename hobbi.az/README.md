@@ -12,13 +12,17 @@ npm run dev                 # http://localhost:3000 — dizayn DB olmadan da aç
 API və DB üçün:
 ```bash
 cp .env.example .env        # DATABASE_URL, AUTH_SECRET, SEED_DEMO_PASSWORD doldurun
-npx prisma migrate dev --name init
+npm run db:deploy           # prisma/migrations/ altındakı migration-ları tətbiq edir
 npm run db:seed
 ```
 Yoxlamalar: `npm run typecheck && npm run lint && npm test && npm run build`
 
 ## Mühit dəyişənləri
-`DATABASE_URL`, `AUTH_SECRET` (32+ simvol), `APP_ORIGIN`, `UPLOAD_DIR`, `SEED_DEMO_PASSWORD`, `SEED_ADMIN_EMAIL`/`SEED_ADMIN_PASSWORD` (admin yalnız ikisi də verilərsə yaranır; kodda admin parolu yoxdur).
+`DATABASE_URL`, `AUTH_SECRET` (32+ simvol), `APP_ORIGIN`, `UPLOAD_DIR`, `SEED_DEMO_PASSWORD`, `SEED_ADMIN_EMAIL`/`SEED_ADMIN_PASSWORD` (admin yalnız ikisi də verilərsə yaranır; kodda admin parolu yoxdur), `SEED_DEMO_REEL_URL` (istəyə bağlı: demo reel üçün video linki).
+
+Sxemi dəyişəndə: `npm run db:migrate -- --name <ad>` yeni migration yaradır. Bazanı heç vaxt əl ilə dəyişməyin.
+
+DB qoşulmayanda `/api/*` 503 "Verilənlər bazası əlçatan deyil" qaytarır (server logunda səbəb yazılır).
 
 ## Səhifələr
 | Route | Komponent | Orijinalda |
@@ -47,12 +51,15 @@ Bütün səhifələrdə açılan overlay-lər `components/overlays/GlobalOverlay
 - `src/data/` — demo data (məhsullar, reels, mesajlar, bildirişlər, parametrlər).
 - `src/lib/` — auth, validasiya (Zod), filtr məntiqi (`filters.ts`), şifrə gücü (`password.ts`), məhsul detal modeli, localStorage köməkçiləri, storage abstraksiyası.
 - `src/app/api/` — REST marşrutları; `prisma/` — schema + seed; `tests/` — Vitest.
-- `legacy/` — orijinal fayllar (toxunulmayıb).
+- `legacy/hobbi_az_ESAS_BUDUR_SİLME_.html` — köçürmənin mənbəyi olan orijinal dizayn (köhnə `index.html`/`style.css`/`javascript.js` repo kökündəki `hobbi_az_original/`-dadır).
 
-Orijinalda `localStorage`-də saxlanan hər şey eyni açarlarla saxlanılır: `theme`, `hobbi_lang`, `hobbi_profile`, `rating_<id>`, `pd_ad_data`, `isAdmin`.
+`localStorage` açarları: `theme`, `hobbi_lang`, `hobbi_profile`, `rating_<id>`, `pd_ad_data`, `hobbi_favorites` (bəyənilən məhsullar). `isAdmin` yalnız development-də reklam redaktəsini göstərir, production-da heç nə vermir.
+
+URL-lər: `/?cat=resm` (kateqoriya), `/?q=xalça` (axtarış), `#producto=12` (məhsul detalı) — hamısı paylaşıla və yenilənə bilər.
 
 ## Növbəti addımlar
 - Frontend-i API-yə qoşmaq: `src/data/` əvəzinə `/api/listings`, `/api/reels`, `/api/conversations`, `/api/favorites`, qeydiyyat üçün `/api/auth/*`.
 - Admin, real mesajlaşma, profil redaktəsinin backend-ə yazılması.
-- Rate limiting, e-poçt/SMS doğrulama, şifrə sıfırlama (SMS provayderi lazımdır).
+- E-poçt/SMS OTP doğrulama, şifrə sıfırlama. Rate limit hazırda yaddaşdadır (bir server üçün); bir neçə instansda Redis/Upstash lazımdır.
+- Dil seçimi (AZ/RU) yadda qalır, amma tərcümələr hələ yoxdur.
 - Production şəkil saxlama: `StorageProvider` interfeysini (`src/lib/storage.ts`) S3/R2 ilə implement etmək.

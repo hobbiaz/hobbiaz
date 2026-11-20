@@ -7,6 +7,7 @@ import { useUI } from "@/providers/UIProvider";
 import { IconLogo, IconSearch } from "@/components/icons";
 import { NotificationsMenu } from "./NotificationsMenu";
 import { ShareMenu } from "./ShareMenu";
+import { pressable } from "@/lib/a11y";
 
 export function TopNav() {
   const page = useCurrentPage();
@@ -29,7 +30,7 @@ export function TopNav() {
         <IconLogo />
       </Link>
 
-      <div
+      <div {...pressable}
         className={`topnav-search${searchHidden ? " hidden" : ""}`}
         id="topnav-search"
         onClick={() => openModal("search")}

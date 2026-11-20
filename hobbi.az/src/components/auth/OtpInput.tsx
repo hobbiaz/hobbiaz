@@ -5,6 +5,8 @@ import { forwardRef, useImperativeHandle, useRef, useState } from "react";
 export interface OtpInputHandle {
   reset: () => void;
   focus: () => void;
+  /** Digits typed so far, e.g. "1234" while two boxes are still empty. */
+  value: () => string;
 }
 
 const LENGTH = 6;
@@ -20,7 +22,8 @@ export const OtpInput = forwardRef<OtpInputHandle>(function OtpInput(_, ref) {
       inputs.current[0]?.focus();
     },
     focus: () => inputs.current[0]?.focus(),
-  }));
+    value: () => digits.join(""),
+  }), [digits]);
 
   const set = (i: number, v: string) => setDigits((d) => d.map((x, j) => (j === i ? v : x)));
 

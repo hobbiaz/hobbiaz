@@ -2,6 +2,7 @@
 
 import { PRODUCTS } from "@/data/products";
 import { IconSellerBack } from "@/components/icons";
+import { pressable } from "@/lib/a11y";
 
 export interface SellerRef {
   name: string;
@@ -32,7 +33,7 @@ export function SellerPanel({ seller, onClose, onOpenProduct }: { seller: Seller
         <div className="pd-seller-grid" id="pd-seller-grid">
           {seller &&
             items.map((sp) => (
-              <div className="pd-seller-card" key={sp.id} onClick={() => onOpenProduct(sp.id)}>
+              <div key={sp.id} {...pressable} className="pd-seller-card" onClick={() => onOpenProduct(sp.id)}>
                 <img src={sp.images[0] || sp.photo} alt={sp.title} loading="lazy" />
                 <div className="pd-seller-card-info">
                   <div className="pd-seller-card-title">{sp.title}</div>

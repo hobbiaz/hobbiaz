@@ -3,9 +3,11 @@ import bcrypt from "bcryptjs";
 
 const db = new PrismaClient();
 
+// Same slugs as the UI (src/types CategorySlug), so ?cat= filters map 1:1 to the DB.
 const CATEGORIES = [
-  ["el-isi", "Əl işi"], ["rəsm", "Rəsm və sənət"], ["geyim", "Geyim və aksesuar"],
-  ["ev-dekor", "Ev dekoru"], ["musiqi", "Musiqi alətləri"], ["kolleksiya", "Kolleksiya"],
+  ["keramika", "Keramika"], ["zergerllik", "Zərgərlik"], ["resm", "Rəsm"],
+  ["toxuculuq", "Toxuculuq və xalçaçılıq"], ["agac", "Ağac işi"], ["musiqi", "Musiqi alətləri"],
+  ["digər", "Digər"],
 ] as const;
 
 async function main() {
@@ -35,17 +37,19 @@ async function main() {
   if ((await db.listing.count({ where: { isDemo: true } })) === 0) {
     const cats = Object.fromEntries((await db.category.findMany()).map((c) => [c.slug, c.id]));
     const demo = [
-      ["[DEMO] Əl işi saxsı güldan", "el-isi", 4500, "HANDMADE", "Bakı"],
-      ["[DEMO] Yağlı boya mənzərə", "rəsm", 12000, "NEW", "Gəncə"],
-      ["[DEMO] Toxunma yun şal", "geyim", 6500, "HANDMADE", "Şəki"],
-      ["[DEMO] Divar dekoru", "ev-dekor", 3000, "NEW", "Bakı"],
-      ["[DEMO] İkinci əl gitara", "musiqi", 25000, "USED", "Sumqayıt"],
-      ["[DEMO] Köhnə pul kolleksiyası", "kolleksiya", 18000, "USED", "Bakı"],
+      ["[DEMO] Əl işi saxsı güldan", "keramika", 4500, "HANDMADE", "Bakı"],
+      ["[DEMO] Yağlı boya mənzərə", "resm", 12000, "NEW", "Gəncə"],
+      ["[DEMO] Gümüş sırğa", "zergerllik", 6500, "HANDMADE", "Şəki"],
+      ["[DEMO] Toxunma xalça", "toxuculuq", 30000, "HANDMADE", "Quba"],
+      ["[DEMO] Oyma taxta qutu", "agac", 3000, "HANDMADE", "Bakı"],
+      ["[DEMO] İkinci əl tar", "musiqi", 25000, "USED", "Sumqayıt"],
     ] as const;
     for (const [title, cat, priceCents, condition, city] of demo)
       await db.listing.create({ data: { title, description: "Demo elan. Real məhsul deyil.", categoryId: cats[cat], priceCents, condition, city, status: "PUBLISHED", ownerId: seller.id, isDemo: true } });
   }
-  if ((await db.reel.count({ where: { isDemo: true } })) === 0)
-    await db.reel.create({ data: { ownerId: seller.id, title: "[DEMO] Saxsı hazırlanması", videoUrl: "/demo/sample.mp4", isDemo: true } });
+  // No video ships with the repo: a demo reel is created only when a URL is given.
+  const reelUrl = process.env.SEED_DEMO_REEL_URL;
+  if (reelUrl && (await db.reel.count({ where: { isDemo: true } })) === 0)
+    await db.reel.create({ data: { ownerId: seller.id, title: "[DEMO] Saxsı hazırlanması", videoUrl: reelUrl, isDemo: true } });
 }
 main().then(() => db.$disconnect()).catch(async (e) => { console.error(e); await db.$disconnect(); process.exit(1); });

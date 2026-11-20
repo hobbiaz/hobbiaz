@@ -5,6 +5,7 @@ import type { Review } from "@/types";
 import { useUI } from "@/providers/UIProvider";
 import { ImageWithFallback } from "@/components/ui/ImageWithFallback";
 import { IconCameraSmall } from "@/components/icons";
+import { pressable } from "@/lib/a11y";
 
 function ReviewItem({ review: r, onReply, onOpenUser }: { review: Review; onReply: (text: string) => void; onOpenUser: () => void }) {
   const [open, setOpen] = useState(false);
@@ -13,12 +14,12 @@ function ReviewItem({ review: r, onReply, onOpenUser }: { review: Review; onRepl
 
   return (
     <div className="pd-review-item" data-review-id={r.id}>
-      <div className="pd-review-avatar" onClick={onOpenUser}>
+      <div {...pressable} className="pd-review-avatar" onClick={onOpenUser}>
         {r.avatar ? <ImageWithFallback src={r.avatar} alt={r.user} fallback={fallback} /> : fallback}
       </div>
       <div className="pd-review-body">
         <div className="pd-review-header">
-          <span className="pd-review-user" onClick={onOpenUser}>{r.user}</span>
+          <span {...pressable} className="pd-review-user" onClick={onOpenUser}>{r.user}</span>
         </div>
         <div className="pd-review-text">{r.text}</div>
         {r.images.length > 0 && (

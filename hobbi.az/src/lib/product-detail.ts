@@ -59,9 +59,10 @@ export interface AdData {
   link: string;
 }
 
+/** House ad (no third-party brand): invites makers to open a store. */
 export const DEFAULT_AD: AdData = {
-  logo: "https://lh3.googleusercontent.com/aida-public/AB6AXuC0dBj8SKkpqVnMuYQo1pRdu_Fd9NS4ZAp5V1TAFMyHalGFh-eyNA8z5Agcqa0N-AGAY9m8jj-kNf2WhM3bRhyY1oQNahtb0Vx187etJwJmThU1rN-oqF5v9twGHeVpu2xJyor1GWi6cxwDSqoNaYQtTDrSz23Qqe7AbLyiT9lHHSKbfoPEEoRFTgBkoijzNleBsDrwBkKDPpWWGLgzqDzVsreh_qvc0NK242YoayHw90CX0nUxLIrexNcewh1OoJx4-fVuXwWM_wI",
-  title: "Yükləyin",
-  sub: "Duolingo: Dil Dərsləri",
-  link: "https://duolingo.com",
+  logo: "/logo.svg",
+  title: "Mağaza aç",
+  sub: "hobbi.az: əl işlərini sat",
+  link: "",
 };

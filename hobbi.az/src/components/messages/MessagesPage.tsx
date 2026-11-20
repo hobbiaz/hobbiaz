@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { CONVERSATIONS, MESSAGE_TABS } from "@/data/content";
 import { IconMsgSearch } from "@/components/icons";
+import { pressable } from "@/lib/a11y";
 
 export function MessagesPage() {
   const [tab, setTab] = useState<(typeof MESSAGE_TABS)[number]>("Hamısı");
@@ -16,7 +17,7 @@ export function MessagesPage() {
         </div>
         <div className="filter-tabs">
           {MESSAGE_TABS.map((t) => (
-            <span key={t} className={`filter-tab${tab === t ? " active" : ""}`} onClick={() => setTab(t)}>{t}</span>
+            <span key={t} {...pressable} className={`filter-tab${tab === t ? " active" : ""}`} onClick={() => setTab(t)}>{t}</span>
           ))}
         </div>
         <div className="convo-list">

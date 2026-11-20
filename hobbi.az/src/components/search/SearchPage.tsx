@@ -1,12 +1,17 @@
 "use client";
 
+import { useRef } from "react";
+import Link from "next/link";
 import { IDEAS } from "@/data/ideas";
 import { POPULAR_CATEGORIES } from "@/data/content";
 import { useUI } from "@/providers/UIProvider";
 import { IconSearchLarge } from "@/components/icons";
+import { pressable } from "@/lib/a11y";
 
 export function SearchPage() {
-  const { filterCategory } = useUI();
+  const { filterCategory, search } = useUI();
+  const input = useRef<HTMLInputElement>(null);
+  const submit = () => search(input.current?.value ?? "");
 
   return (
     <div className="page active" id="page-search">
@@ -15,14 +20,14 @@ export function SearchPage() {
           <h1>Nə axtarırsınız?</h1>
           <div className="search-box-wrap">
             <IconSearchLarge />
-            <input type="text" id="search-input" placeholder="Məhsul, mağaza və ya sənətkar axtar..." />
-            <button className="search-btn">Axtar</button>
+            <input ref={input} type="search" id="search-input" placeholder="Məhsul, mağaza və ya sənətkar axtar..." aria-label="Axtarış" enterKeyHint="search" onKeyDown={(e) => { if (e.key === "Enter") submit(); }} />
+            <button className="search-btn" onClick={submit}>Axtar</button>
           </div>
         </div>
 
         <div className="section-header" style={{ marginBottom: ".75rem" }}>
           <h2>İdeya və İlham</h2>
-          <a href="#">Hamısına bax</a>
+          <Link href="/">Hamısına bax</Link>
         </div>
         <div className="ideas-grid" id="ideas-grid">
           {IDEAS.map((idea) => (
@@ -42,7 +47,7 @@ export function SearchPage() {
           </div>
           <div className="chip-row">
             {POPULAR_CATEGORIES.map((c) => (
-              <span key={c.slug} className={`chip${c.orange ? " orange" : ""}`} onClick={() => filterCategory(c.slug)}>
+              <span key={c.slug} {...pressable} className={`chip${c.orange ? " orange" : ""}`} onClick={() => filterCategory(c.slug)}>
                 {c.label}
               </span>
             ))}

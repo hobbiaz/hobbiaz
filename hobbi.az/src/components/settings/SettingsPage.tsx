@@ -8,6 +8,7 @@ import { readJSON, writeStorage } from "@/lib/storage-client";
 import { DEFAULT_PROFILE, SETTINGS_ACTIVITIES, SETTINGS_BLOCKED, SETTINGS_META, type SettingsSection } from "@/data/settings";
 import type { ProfileData } from "@/types";
 import { IconBloklanmis, IconBloklanmis2, IconBloklanmisHesablar, IconCihazlar, IconCixisEt, IconCixisEt2, IconDestek, IconDestek2, IconDil, IconDil2, IconDil3, IconFealiyyetler, IconFealiyyetler2, IconGorunus, IconGorunus2, IconGorunus3, IconHaqqinda, IconHesabMelumatlarim, IconHesabMelumatlarim2, IconHesabMelumatlarim3, IconHesabMelumatlarim4, IconHesabTipi, IconHesabTipi2, IconInterfeysDili, IconIstifadeSertleri, IconIstifadeSertleri2, IconLightbulb, IconMexfilikSiyaseti, IconMexfilikSiyaseti2, IconParametrler2, IconSettingsBack, IconSpDeskExtraArrow, IconSpMobItemArrow, IconTehlukesizlik } from "@/components/icons";
+import { pressable } from "@/lib/a11y";
 
 const PROFILE_KEY = "hobbi_profile";
 const loadProfile = (): ProfileData => ({ ...DEFAULT_PROFILE, ...readJSON<Partial<ProfileData>>(PROFILE_KEY, {}) });
@@ -84,61 +85,61 @@ export function SettingsPage() {
         <span className="sp-mob-title">Parametrlər</span>
       </div>
       <div className="sp-mob-list">
-        <div className="sp-mob-item" onClick={() => openSub("account")}>
+        <div {...pressable} className="sp-mob-item" onClick={() => openSub("account")}>
           <div className="sp-mob-item-icon"><IconHesabMelumatlarim /></div>
           <span className="sp-mob-item-text">Hesab məlumatlarım</span>
           <span className="sp-mob-item-arrow">›</span>
         </div>
-        <div className="sp-mob-item" onClick={() => openSub("account-type")}>
+        <div {...pressable} className="sp-mob-item" onClick={() => openSub("account-type")}>
           <div className="sp-mob-item-icon"><IconHesabTipi /></div>
           <span className="sp-mob-item-text">Hesab tipi</span>
           <span className="sp-mob-item-arrow">›</span>
         </div>
-        <div className="sp-mob-item" onClick={() => openSub("activity")}>
+        <div {...pressable} className="sp-mob-item" onClick={() => openSub("activity")}>
           <div className="sp-mob-item-icon"><IconFealiyyetler /></div>
           <span className="sp-mob-item-text">Fəaliyyətlər</span>
           <span className="sp-mob-item-arrow">›</span>
         </div>
-        <div className="sp-mob-item" onClick={() => openSub("blocked")}>
+        <div {...pressable} className="sp-mob-item" onClick={() => openSub("blocked")}>
           <div className="sp-mob-item-icon"><IconBloklanmis /></div>
           <span className="sp-mob-item-text">Bloklanmış</span>
           <span className="sp-mob-item-arrow">›</span>
         </div>
         <div className="sp-mob-divider"></div>
-        <div className="sp-mob-item" onClick={() => openSub("language")}>
+        <div {...pressable} className="sp-mob-item" onClick={() => openSub("language")}>
           <div className="sp-mob-item-icon"><IconDil /></div>
           <span className="sp-mob-item-text">Dil</span>
           <span className="sp-mob-item-badge">{langLabel}</span>
           <span className="sp-mob-item-arrow">›</span>
         </div>
-        <div className="sp-mob-item" onClick={() => openSub("appearance")}>
+        <div {...pressable} className="sp-mob-item" onClick={() => openSub("appearance")}>
           <div className="sp-mob-item-icon"><IconGorunus /></div>
           <span className="sp-mob-item-text">Görünüş</span>
           <span className="sp-mob-item-arrow">›</span>
         </div>
         <div className="sp-mob-divider"></div>
-        <div className="sp-mob-item" onClick={() => openSub("privacy")}>
+        <div {...pressable} className="sp-mob-item" onClick={() => openSub("privacy")}>
           <div className="sp-mob-item-icon"><IconMexfilikSiyaseti /></div>
           <span className="sp-mob-item-text">Məxfilik siyasəti</span>
           <IconSpMobItemArrow />
         </div>
-        <div className="sp-mob-item" onClick={() => openSub("terms")}>
+        <div {...pressable} className="sp-mob-item" onClick={() => openSub("terms")}>
           <div className="sp-mob-item-icon"><IconIstifadeSertleri /></div>
           <span className="sp-mob-item-text">İstifadə şərtləri</span>
           <IconSpMobItemArrow />
         </div>
-        <div className="sp-mob-item" onClick={() => openSub("about")}>
+        <div {...pressable} className="sp-mob-item" onClick={() => openSub("about")}>
           <div className="sp-mob-item-icon"><IconLightbulb /></div>
           <span className="sp-mob-item-text">Haqqında</span>
           <span className="sp-mob-item-arrow">›</span>
         </div>
-        <div className="sp-mob-item" onClick={() => openSub("support")}>
+        <div {...pressable} className="sp-mob-item" onClick={() => openSub("support")}>
           <div className="sp-mob-item-icon"><IconDestek /></div>
           <span className="sp-mob-item-text">Dəstək</span>
           <span className="sp-mob-item-arrow">›</span>
         </div>
         <div className="sp-mob-divider"></div>
-        <div className="sp-mob-item sp-logout" onClick={logout}>
+        <div {...pressable} className="sp-mob-item sp-logout" onClick={logout}>
           <div className="sp-mob-item-icon"><IconCixisEt /></div>
           <span className="sp-mob-item-text">Çıxış et</span>
         </div>
@@ -155,50 +156,50 @@ export function SettingsPage() {
           <div className="sp-desk-sidebar-name">Orxan Məmmədov</div>
           <div className="sp-desk-sidebar-sub">Parametrləri idarə et</div>
         </div>
-        <div className={navCls("account")} data-section="account" onClick={() => switchSection("account")}>
+        <div {...pressable} className={navCls("account")} data-section="account" onClick={() => switchSection("account")}>
           <IconHesabMelumatlarim2 />
           Hesab məlumatlarım
         </div>
-        <div className={navCls("account-type")} data-section="account-type" onClick={() => switchSection("account-type")}>
+        <div {...pressable} className={navCls("account-type")} data-section="account-type" onClick={() => switchSection("account-type")}>
           <IconHesabTipi2 />
           Hesab tipi
         </div>
-        <div className={navCls("activity")} data-section="activity" onClick={() => switchSection("activity")}>
+        <div {...pressable} className={navCls("activity")} data-section="activity" onClick={() => switchSection("activity")}>
           <IconFealiyyetler2 />
           Fəaliyyətlər
         </div>
-        <div className={navCls("blocked")} data-section="blocked" onClick={() => switchSection("blocked")}>
+        <div {...pressable} className={navCls("blocked")} data-section="blocked" onClick={() => switchSection("blocked")}>
           <IconBloklanmis2 />
           Bloklanmış
         </div>
         <div className="sp-desk-nav-divider"></div>
-        <div className={navCls("language")} data-section="language" onClick={() => switchSection("language")}>
+        <div {...pressable} className={navCls("language")} data-section="language" onClick={() => switchSection("language")}>
           <IconDil2 />
           Dil
         </div>
-        <div className={navCls("appearance")} data-section="appearance" onClick={() => switchSection("appearance")}>
+        <div {...pressable} className={navCls("appearance")} data-section="appearance" onClick={() => switchSection("appearance")}>
           <IconGorunus2 />
           Görünüş
         </div>
         <div className="sp-desk-nav-divider"></div>
-        <div className={navCls("privacy")} data-section="privacy" onClick={() => switchSection("privacy")}>
+        <div {...pressable} className={navCls("privacy")} data-section="privacy" onClick={() => switchSection("privacy")}>
           <IconMexfilikSiyaseti2 />
           Məxfilik siyasəti
         </div>
-        <div className={navCls("terms")} data-section="terms" onClick={() => switchSection("terms")}>
+        <div {...pressable} className={navCls("terms")} data-section="terms" onClick={() => switchSection("terms")}>
           <IconIstifadeSertleri2 />
           İstifadə şərtləri
         </div>
-        <div className={navCls("about")} data-section="about" onClick={() => switchSection("about")}>
+        <div {...pressable} className={navCls("about")} data-section="about" onClick={() => switchSection("about")}>
           <IconHaqqinda />
           Haqqında
         </div>
-        <div className={navCls("support")} data-section="support" onClick={() => switchSection("support")}>
+        <div {...pressable} className={navCls("support")} data-section="support" onClick={() => switchSection("support")}>
           <IconDestek2 />
           Dəstək
         </div>
         <div className="sp-desk-nav-divider"></div>
-        <div className="sp-desk-nav-item sp-desk-logout" onClick={logout}>
+        <div {...pressable} className="sp-desk-nav-item sp-desk-logout" onClick={logout}>
           <IconCixisEt2 />
           Çıxış et
         </div>
@@ -286,19 +287,19 @@ export function SettingsPage() {
         <div className="sp-desk-extra-list">
           <div className="sp-desk-extra-title">Əlavə tənzimləmələr</div>
           <div style={{ background: "var(--surface-card)", border: "1px solid var(--outline-var)", borderRadius: "14px", overflow: "hidden" }}>
-            <div className="sp-desk-extra-item" onClick={() => switchSection("language")}>
+            <div {...pressable} className="sp-desk-extra-item" onClick={() => switchSection("language")}>
               <div className="sp-desk-extra-icon"><IconInterfeysDili /></div>
               <div style={{ flex: "1" }}><div className="sp-desk-extra-text">İnterfeys dili</div><div className="sp-desk-extra-sub">Hazırda: {lang === "az" ? "Azərbaycan dili" : "Русский язык"}</div></div>
               <IconSpDeskExtraArrow />
             </div>
             <div style={{ height: "1px", background: "var(--outline-var)", opacity: ".4", margin: "0 1rem" }}></div>
-            <div className="sp-desk-extra-item" onClick={() => toast("Cihazlar tezliklə")}>
+            <div {...pressable} className="sp-desk-extra-item" onClick={() => toast("Cihazlar tezliklə")}>
               <div className="sp-desk-extra-icon"><IconCihazlar /></div>
               <div style={{ flex: "1" }}><div className="sp-desk-extra-text">Cihazlar</div><div className="sp-desk-extra-sub">Aktiv olan sessiyaları idarə edin.</div></div>
               <IconSpDeskExtraArrow />
             </div>
             <div style={{ height: "1px", background: "var(--outline-var)", opacity: ".4", margin: "0 1rem" }}></div>
-            <div className="sp-desk-extra-item" onClick={() => switchSection("blocked")}>
+            <div {...pressable} className="sp-desk-extra-item" onClick={() => switchSection("blocked")}>
               <div className="sp-desk-extra-icon"><IconBloklanmisHesablar /></div>
               <div style={{ flex: "1" }}><div className="sp-desk-extra-text">Bloklanmış hesablar</div><div className="sp-desk-extra-sub">Bloklanmış istifadəçiləri görün.</div></div>
               <IconSpDeskExtraArrow />
@@ -375,10 +376,10 @@ export function SettingsPage() {
         {/* ── PANE: Dil ── */}
         <div className={paneCls("language")} data-section="language" id="sp-pane-language">
           <div className="sp-desk-pane-card">
-            <div className={`sp-lang-opt${lang === "az" ? " selected" : ""}`} data-lang="az" onClick={() => setLang("az")}>
+            <div {...pressable} className={`sp-lang-opt${lang === "az" ? " selected" : ""}`} data-lang="az" onClick={() => setLang("az")}>
               <span className="sp-lang-opt-text">🇦🇿 Azərbaycan</span><span className="sp-lang-check">✓</span>
             </div>
-            <div className={`sp-lang-opt${lang === "ru" ? " selected" : ""}`} data-lang="ru" onClick={() => setLang("ru")}>
+            <div {...pressable} className={`sp-lang-opt${lang === "ru" ? " selected" : ""}`} data-lang="ru" onClick={() => setLang("ru")}>
               <span className="sp-lang-opt-text">🇷🇺 Русский</span><span className="sp-lang-check">✓</span>
             </div>
           </div>
@@ -387,13 +388,13 @@ export function SettingsPage() {
         {/* ── PANE: Görünüş ── */}
         <div className={paneCls("appearance")} data-section="appearance" id="sp-pane-appearance">
           <div className="sp-desk-pane-card">
-            <div className={`sp-theme-opt${theme === "auto" ? " selected" : ""}`} data-theme="auto" onClick={() => setTheme("auto")}>
+            <div {...pressable} className={`sp-theme-opt${theme === "auto" ? " selected" : ""}`} data-theme="auto" onClick={() => setTheme("auto")}>
               <span className="sp-theme-opt-text">🌗 Avtomatik (sistem)</span><span className="sp-theme-check">✓</span>
             </div>
-            <div className={`sp-theme-opt${theme === "light" ? " selected" : ""}`} data-theme="light" onClick={() => setTheme("light")}>
+            <div {...pressable} className={`sp-theme-opt${theme === "light" ? " selected" : ""}`} data-theme="light" onClick={() => setTheme("light")}>
               <span className="sp-theme-opt-text">☀️ Açıq rejim</span><span className="sp-theme-check">✓</span>
             </div>
-            <div className={`sp-theme-opt${theme === "dark" ? " selected" : ""}`} data-theme="dark" onClick={() => setTheme("dark")}>
+            <div {...pressable} className={`sp-theme-opt${theme === "dark" ? " selected" : ""}`} data-theme="dark" onClick={() => setTheme("dark")}>
               <span className="sp-theme-opt-text">🌙 Tünd rejim</span><span className="sp-theme-check">✓</span>
             </div>
           </div>
@@ -456,10 +457,10 @@ export function SettingsPage() {
         <span className="sub-panel-title">Dil</span>
       </div>
       <div className="sub-panel-body">
-        <div className={`lang-option${lang === "az" ? " selected" : ""}`} id="lang-az" onClick={() => setLang("az")}>
+        <div {...pressable} className={`lang-option${lang === "az" ? " selected" : ""}`} id="lang-az" onClick={() => setLang("az")}>
           <span className="lang-option-text">🇦🇿 Azərbaycan</span><span className="lang-check">✓</span>
         </div>
-        <div className={`lang-option${lang === "ru" ? " selected" : ""}`} id="lang-ru" onClick={() => setLang("ru")}>
+        <div {...pressable} className={`lang-option${lang === "ru" ? " selected" : ""}`} id="lang-ru" onClick={() => setLang("ru")}>
           <span className="lang-option-text">🇷🇺 Русский</span><span className="lang-check">✓</span>
         </div>
       </div>
@@ -470,13 +471,13 @@ export function SettingsPage() {
         <span className="sub-panel-title">Görünüş</span>
       </div>
       <div className="sub-panel-body">
-        <div className={`theme-option${theme === "auto" ? " selected" : ""}`} id="theme-auto" onClick={() => setTheme("auto")}>
+        <div {...pressable} className={`theme-option${theme === "auto" ? " selected" : ""}`} id="theme-auto" onClick={() => setTheme("auto")}>
           <span className="theme-option-text">🌗 Avtomatik (sistem)</span><span className="theme-check">✓</span>
         </div>
-        <div className={`theme-option${theme === "light" ? " selected" : ""}`} id="theme-light" onClick={() => setTheme("light")}>
+        <div {...pressable} className={`theme-option${theme === "light" ? " selected" : ""}`} id="theme-light" onClick={() => setTheme("light")}>
           <span className="theme-option-text">☀️ Ağ ekran (Açıq)</span><span className="theme-check">✓</span>
         </div>
-        <div className={`theme-option${theme === "dark" ? " selected" : ""}`} id="theme-dark" onClick={() => setTheme("dark")}>
+        <div {...pressable} className={`theme-option${theme === "dark" ? " selected" : ""}`} id="theme-dark" onClick={() => setTheme("dark")}>
           <span className="theme-option-text">🌙 Qara ekran (Tünd)</span><span className="theme-check">✓</span>
         </div>
       </div>

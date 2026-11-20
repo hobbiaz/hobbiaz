@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { NOTIFICATIONS } from "@/data/content";
 import { useClickOutside } from "@/hooks/useClickOutside";
 import { IconBell, IconBellDot } from "@/components/icons";
+import { pressable } from "@/lib/a11y";
 
 export function NotificationsMenu() {
   const [open, setOpen] = useState(false);
@@ -51,7 +52,7 @@ export function NotificationsMenu() {
       <div ref={dropRef} className={`notif-dropdown${open ? " open" : ""}`} id="notif-dropdown">
         <div className="notif-head">
           <span>Bildirişlər</span>
-          <span className="notif-mark" onClick={() => setItems((list) => list.map((n) => ({ ...n, unread: false })))}>
+          <span {...pressable} className="notif-mark" onClick={() => setItems((list) => list.map((n) => ({ ...n, unread: false })))}>
             Oxundu
           </span>
         </div>

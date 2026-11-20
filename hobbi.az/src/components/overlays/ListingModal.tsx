@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { useUI } from "@/providers/UIProvider";
 import { Icon25Tamamlandi, IconAcarSozler, IconArrowNext, IconBunlariTetbiqEt, IconElaveEt, IconGunduzIsigindanIstifadeEdin, IconKateqoriyaSecimi, IconLSelectChevron, IconLSelectChevron2, IconListingTipsCard, IconListingVideoAside, IconMehsulunAciqlamasi, IconQisaVideoElaveEt, IconQisaVideoElaveEt2, IconQisaVideoElaveEt3, IconSekil, IconSekilleriBuraSurukleyinVe, IconSekillerleUygunluq, IconVideo, IconYeniElan } from "@/components/icons";
+import { pressable } from "@/lib/a11y";
 
 const STEPS = {
   1: { cardTitle: "Məhsulun təsvirlərini yükləyin", pct: "25% Tamamlandı", progress: "25%" },
@@ -126,7 +127,7 @@ export function ListingModal() {
                     <IconSekil />
                     <h3>Şəkil</h3>
                   </div>
-                  <div
+                  <div {...pressable}
                     className={`listing-drop-zone upload-drop-zone${dragOver ? " drag-over" : ""}`}
                     id="drop-zone"
                     onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
@@ -142,12 +143,12 @@ export function ListingModal() {
                   </div>
                   <input ref={fileRef} type="file" id="file-input" accept="image/*" multiple style={{ display: "none" }} onChange={(e) => { addFiles(e.target.files); e.target.value = ""; }} />
                   <div className="upload-preview-row" id="preview-row">
-                    <div className="listing-thumb-add" onClick={pickFiles}><IconElaveEt /><span>Əlavə et</span></div>
-                    <div className="listing-thumb-add" onClick={pickFiles}><IconElaveEt /></div>
-                    <div className="listing-thumb-add" onClick={pickFiles}><IconElaveEt /></div>
+                    <div {...pressable} className="listing-thumb-add" onClick={pickFiles}><IconElaveEt /><span>Əlavə et</span></div>
+                    <div {...pressable} className="listing-thumb-add" onClick={pickFiles}><IconElaveEt /></div>
+                    <div {...pressable} className="listing-thumb-add" onClick={pickFiles}><IconElaveEt /></div>
                     {photos.map((p) => (
-                      <div
-                        key={p.id}
+                      <div key={p.id}
+                        {...pressable}
                         className={`upload-preview-item${coverId === p.id ? " cover-img" : ""}`}
                         title="Üzlük şəkli seçmək üçün klikləyin"
                         onClick={() => setCoverId(p.id)}
@@ -164,14 +165,14 @@ export function ListingModal() {
                     <IconVideo />
                     <h3>Video</h3>
                   </div>
-                  <div className="listing-video-row" onClick={() => toast("Video seçin")}>
+                  <div {...pressable} className="listing-video-row" onClick={() => toast("Video seçin")}>
                     <div className="listing-video-icon">
                     <IconQisaVideoElaveEt />
                     </div>
                     <div className="listing-video-text"><strong>Qısa video əlavə et</strong><span>Maksimum 30 saniyə, MP4 formatda</span></div>
                     <IconQisaVideoElaveEt2 />
                   </div>
-                  <div className="listing-video-desktop" onClick={() => toast("Video seçin")}>
+                  <div {...pressable} className="listing-video-desktop" onClick={() => toast("Video seçin")}>
                     <div className="listing-video-upload">
                       <div className="listing-video-upload-icon"><IconQisaVideoElaveEt3 /></div>
                       <div className="listing-drop-title">Qısa video əlavə et</div>
@@ -315,7 +316,7 @@ export function ListingModal() {
                 <div className="l-tags-wrap" id="l-tags">
                   {tags.map((t, i) => (
                     <span className="listing-tag-chip" key={`${t}-${i}`}>
-                      <span className="hash">#</span> {t} <span className="l-tag-x" onClick={() => setTags((list) => list.filter((_, j) => j !== i))}>×</span>
+                      <span className="hash">#</span> {t} <span {...pressable} className="l-tag-x" onClick={() => setTags((list) => list.filter((_, j) => j !== i))}>×</span>
                     </span>
                   ))}
                 </div>

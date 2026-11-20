@@ -1,17 +1,29 @@
 import type { Metadata, Viewport } from "next";
 import { UIProvider } from "@/providers/UIProvider";
 import { AppShell } from "@/components/layout/AppShell";
+import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "hobbi.az — Əl işi və hobbi bazarı",
-  description: "Azərbaycanlı əl işi sənətkarlarını alıcılarla birləşdirən platforma.",
+  metadataBase: new URL(SITE_URL),
+  title: { default: "hobbi.az — Əl işi və hobbi bazarı", template: "%s · hobbi.az" },
+  description: SITE_DESCRIPTION,
+  applicationName: SITE_NAME,
+  openGraph: {
+    type: "website",
+    siteName: SITE_NAME,
+    locale: "az_AZ",
+    title: "hobbi.az — Əl işi və hobbi bazarı",
+    description: SITE_DESCRIPTION,
+  },
+  twitter: { card: "summary", title: "hobbi.az", description: SITE_DESCRIPTION },
 };
 
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
+  themeColor: "#e76262",
 };
 
 // Applies the saved theme before first paint so there is no light/dark flash.

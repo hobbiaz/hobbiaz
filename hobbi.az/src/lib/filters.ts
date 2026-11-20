@@ -47,3 +47,15 @@ export function applyFilters(products: Product[], f: FilterState): Product[] {
 }
 
 export const activeFilterCount = (f: FilterState) => f.categories.length + f.priceChips.length + f.features.length;
+
+const norm = (s: string) => s.toLocaleLowerCase("az").normalize("NFC");
+
+/** Free-text search over the demo catalogue: every word must appear in title/shop/description/category. */
+export function searchProducts(products: Product[], query: string): Product[] {
+  const words = norm(query).split(/\s+/).filter(Boolean);
+  if (!words.length) return products;
+  return products.filter((p) => {
+    const hay = norm([p.title, p.shop ?? "", p.desc ?? "", p.cat].join(" "));
+    return words.every((w) => hay.includes(w));
+  });
+}

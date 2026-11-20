@@ -10,6 +10,7 @@ import {
   IconProfileOutline, IconSearchFilled, IconSearchOutline, IconSettings, IconSidebarCatsChevron,
   IconVideoFilled, IconVideoOutline,
 } from "@/components/icons";
+import { pressable } from "@/lib/a11y";
 
 const ICON_BOX = { width: 24, height: 24, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 } as const;
 
@@ -57,15 +58,15 @@ export function Sidebar() {
       <div className="sidebar-inner">
         <div className="sidebar-top">
           <div className={`sidebar-cats-scroll${catsOpen ? " is-open" : ""}`} id="sidebar-cats-scroll">
-            <div className="sidebar-cats-header" onClick={() => setCatsOpen((o) => !o)}>
+            <div {...pressable} className="sidebar-cats-header" onClick={() => setCatsOpen((o) => !o)}>
               <span className="nav-icon" style={ICON_BOX}><IconCategories /></span>
               <span className="sidebar-text" style={{ fontWeight: 600, fontSize: ".88rem" }}>Kateqoriyalar</span>
               <IconSidebarCatsChevron />
             </div>
             <div className="sidebar-cats-list" id="sidebar-cats-list">
               {SIDEBAR_CATEGORIES.map((c) => (
-                <div
-                  key={c.slug}
+                <div key={c.slug}
+                  {...pressable}
                   className={`nav-item${page === "home" && category === c.slug ? " active" : ""}`}
                   data-cat={c.slug}
                   onClick={() => filterCategory(c.slug)}
@@ -104,7 +105,7 @@ export function Sidebar() {
             <span className="nav-icon" style={ICON_BOX}><IconSettings /></span>
             <span className="sidebar-text">Parametrlər</span>
           </Link>
-          <div className="nav-item" onClick={() => toast("Daha çox seçimlər tezliklə")}>
+          <div {...pressable} className="nav-item" onClick={() => toast("Daha çox seçimlər tezliklə")}>
             <span className="nav-icon" style={ICON_BOX}><IconMore /></span>
             <span className="sidebar-text">Daha çox</span>
           </div>

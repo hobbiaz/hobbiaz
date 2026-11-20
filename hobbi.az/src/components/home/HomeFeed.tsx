@@ -1,11 +1,13 @@
 "use client";
 
+import Link from "next/link";
 import { CATEGORY_CHIPS, TREND_STORES } from "@/data/content";
 import { useUI } from "@/providers/UIProvider";
 import { ImageWithFallback } from "@/components/ui/ImageWithFallback";
 import { IconFilter, IconStoreCta, IconVerified, IconVerifiedAlt } from "@/components/icons";
 import { ProductCard } from "./ProductCard";
 import type { Product } from "@/types";
+import { pressable } from "@/lib/a11y";
 
 function ProductGrid({ id, items }: { id: string; items: Product[] }) {
   return (
@@ -16,8 +18,12 @@ function ProductGrid({ id, items }: { id: string; items: Product[] }) {
 }
 
 export function HomeFeed() {
-  const { products, category, filterCategory, openModal } = useUI();
-  const showAll = category === "all";
+  const { products, category, filterCategory, resetCategory, openModal, query } = useUI();
+  const showAll = category === "all" && !query;
+  const showEverything = () => {
+    resetCategory();
+    document.getElementById("products-grid")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
   const half = Math.ceil(products.length / 2);
 
   return (
@@ -28,27 +34,35 @@ export function HomeFeed() {
           Filtrlər
         </button>
         {CATEGORY_CHIPS.map((c) => (
-          <span key={c.slug} className={`chip${category === c.slug ? " active" : ""}`} data-cat={c.slug} onClick={() => filterCategory(c.slug)}>
+          <span key={c.slug} {...pressable} className={`chip${category === c.slug ? " active" : ""}`} data-cat={c.slug} onClick={() => filterCategory(c.slug)}>
             {c.label}
           </span>
         ))}
       </div>
 
       <div className="section" style={{ paddingTop: ".35rem" }}>
+        {query && (
+          <div className="section-header">
+            <h2>“{query}” üçün {products.length} nəticə</h2>
+            <Link href="/" onClick={() => resetCategory()}>Təmizlə</Link>
+          </div>
+        )}
         {products.length === 0 ? (
           <div className="product-grid-masonry" id="products-grid">
             <p style={{ color: "var(--outline)", padding: "2rem", textAlign: "center", columns: "initial" }}>
-              Bu kateqoriyada məhsul tapılmadı.
+              {query ? "Heç nə tapılmadı. Başqa söz yoxlayın." : "Bu kateqoriyada məhsul tapılmadı."}
             </p>
           </div>
         ) : (
-          <ProductGrid id="products-grid" items={products.slice(0, half)} />
+          // The unfiltered feed is split around "Trend Mağazalar"; a filtered list shows in full
+          // (the original hid the second half while filtering, so half the matches were lost).
+          <ProductGrid id="products-grid" items={showAll ? products.slice(0, half) : products} />
         )}
       </div>
 
       {showAll && (
         <div className="section fade-up" id="trend-stores-section">
-          <div className="section-header"><h2>Trend Mağazalar</h2><a href="#">Hamısına bax</a></div>
+          <div className="section-header"><h2>Trend Mağazalar</h2><Link href="/search">Hamısına bax</Link></div>
           <div className="stores-list">
             {TREND_STORES.map((s, i) => (
               <div className="store-row" key={s.name}>
@@ -73,8 +87,8 @@ export function HomeFeed() {
 
       {/* Second half of the feed; hidden while a category filter is active. */}
       <div className="section fade-up" style={showAll ? undefined : { display: "none" }}>
-        <div className="section-header"><h2>Yeni Məhsullar</h2><a href="#">Hamısına bax</a></div>
-        <ProductGrid id="products-grid-2" items={products.length ? products.slice(half) : []} />
+        <div className="section-header"><h2>Yeni Məhsullar</h2><Link href="/" scroll={false} onClick={showEverything}>Hamısına bax</Link></div>
+        <ProductGrid id="products-grid-2" items={showAll ? products.slice(half) : []} />
       </div>
 
       <div className="store-cta-banner fade-up">

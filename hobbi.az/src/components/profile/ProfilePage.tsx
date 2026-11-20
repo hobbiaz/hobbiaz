@@ -5,6 +5,7 @@ import Link from "next/link";
 import { PROFILE_PRODUCTS } from "@/data/ideas";
 import { useUI } from "@/providers/UIProvider";
 import { IconAddAccount, IconProfileSettings } from "@/components/icons";
+import { pressable } from "@/lib/a11y";
 
 type Tab = "products" | "favorites" | "history";
 
@@ -57,9 +58,9 @@ export function ProfilePage() {
             <div className="stat-card"><div className="stat-icon">⭐</div><div className="stat-number">4.9</div><div className="stat-label">Mağaza reytinqi</div><div className="stat-change new">Yeni</div></div>
           </div>
           <div className="tab-row">
-            <span className={tabClass("products")} onClick={() => setTab("products")}>Məhsullarım</span>
-            <span className={tabClass("favorites")} onClick={() => setTab("favorites")}>Sevimlilər</span>
-            <span className={tabClass("history")} onClick={() => setTab("history")}>Tarixçə</span>
+            <span {...pressable} className={tabClass("products")} onClick={() => setTab("products")}>Məhsullarım</span>
+            <span {...pressable} className={tabClass("favorites")} onClick={() => setTab("favorites")}>Sevimlilər</span>
+            <span {...pressable} className={tabClass("history")} onClick={() => setTab("history")}>Tarixçə</span>
           </div>
           <div className={panelClass("products")} id="tab-products">
             <div className="products-list" id="profile-products">

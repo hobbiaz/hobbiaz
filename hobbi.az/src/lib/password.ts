@@ -16,3 +16,16 @@ export function passwordStrength(value: string) {
   const score = passwordScore(value);
   return { score, width: WIDTHS[score], color: COLORS[score], label: LABELS[score] };
 }
+
+/** Same rules as the server's registerSchema: 8+ chars, a letter and a digit. */
+export function passwordProblem(value: string): string | null {
+  if (value.length < 8) return "Şifrə ən azı 8 simvol olmalıdır";
+  if (value.length > 128) return "Şifrə çox uzundur";
+  if (!/[A-Za-z]/.test(value)) return "Şifrədə hərf olmalıdır";
+  if (!/[0-9]/.test(value)) return "Şifrədə rəqəm olmalıdır";
+  return null;
+}
+
+/** Azerbaijani mobile number without the +994 prefix: 9 digits, e.g. "50 123 45 67". */
+export const isAzPhone = (value: string) => /^(10|50|51|55|60|70|77|99)\d{7}$/.test(value.replace(/[\s-]/g, "").replace(/^0/, ""));
+export const isEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value.trim());

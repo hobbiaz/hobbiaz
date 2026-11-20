@@ -1,11 +1,13 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { collectionImage, COLLECTION_TO_CATEGORY, SEARCH_COLLECTIONS } from "@/data/content";
 import { useIsMobile } from "@/hooks/useMediaQuery";
 import { useUI } from "@/providers/UIProvider";
 import type { SearchCollection } from "@/types";
 import { IconInstagram, IconSomBack, IconSomCamera, IconSomSearch, IconSpdAction1, IconSpdAction2, IconSpdCamera, IconSpdLogo, IconSpdSearch, IconTiktok, IconTrend } from "@/components/icons";
+import { pressable } from "@/lib/a11y";
 
 type Phase = "closed" | "open" | "closing";
 
@@ -14,7 +16,7 @@ type Phase = "closed" | "open" | "closing";
  * drop-down panel with a dimmed backdrop on desktop. Browser "back" closes it.
  */
 export function SearchOverlay() {
-  const { modal, openModal, closeModal, filterCategory } = useUI();
+  const { modal, openModal, closeModal, filterCategory, search } = useUI();
   const isMobile = useIsMobile();
   const isOpen = modal === "search";
   const [phase, setPhase] = useState<Phase>("closed");
@@ -44,6 +46,12 @@ export function SearchOverlay() {
 
   const finishClose = () => setPhase((p) => (p === "closing" ? "closed" : p));
   const close = () => closeModal();
+  const onSearchKey = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key !== "Enter") return;
+    const text = e.currentTarget.value;
+    close();
+    search(text);
+  };
   const pick = (slug: SearchCollection["slug"]) => { close(); filterCategory(COLLECTION_TO_CATEGORY[slug]); };
 
   const mobileCls = isMobile ? (phase === "open" ? "anim-enter" : phase === "closing" ? "anim-exit" : undefined) : undefined;
@@ -59,7 +67,7 @@ export function SearchOverlay() {
           <IconSomBack />
         </button>
         <div className="som-search-box">
-          <input ref={somInput} id="som-input" type="text" placeholder="hobbi'də axtar" />
+          <input ref={somInput} id="som-input" type="search" placeholder="hobbi'də axtar" aria-label="Axtarış" enterKeyHint="search" onKeyDown={onSearchKey} />
           <div className="som-search-icons">
             <IconSomSearch />
             <div className="som-divider"></div>
@@ -71,7 +79,7 @@ export function SearchOverlay() {
       {/* Category Grid */}
       <div className="som-grid">
         {SEARCH_COLLECTIONS.map((c) => (
-          <div className="som-card" key={c.slug} onClick={() => pick(c.slug)}>
+          <div key={c.slug} {...pressable} className="som-card" onClick={() => pick(c.slug)}>
             <div className="som-collage">
               {c.trending && <div className="som-trend-badge"><IconTrend /></div>}
               {c.imageIds.map((id, i) => (
@@ -93,14 +101,14 @@ export function SearchOverlay() {
       {/* Navbar */}
       <div className="spd-navbar">
         {/* Logo */}
-        <div style={{ flexShrink: "0", cursor: "pointer" }} onClick={close}>
+        <div {...pressable} style={{ flexShrink: "0", cursor: "pointer" }} onClick={close}>
           <IconSpdLogo />
         </div>
 
         {/* Search input */}
         <div className="spd-search-wrap">
           <IconSpdSearch />
-          <input ref={spdInput} id="spd-input" type="text" placeholder="hobbi'də axtar" />
+          <input ref={spdInput} id="spd-input" type="search" placeholder="hobbi'də axtar" aria-label="Axtarış" enterKeyHint="search" onKeyDown={onSearchKey} />
           <div className="spd-divider"></div>
           <IconSpdCamera />
         </div>
@@ -124,7 +132,7 @@ export function SearchOverlay() {
         {/* 4-col grid */}
         <div className="spd-grid" id="spd-grid">
           {SEARCH_COLLECTIONS.map((c) => (
-            <div className="spd-folder" key={`${c.slug}-${phase}`} onClick={() => pick(c.slug)}>
+            <div key={`${c.slug}-${phase}`} {...pressable} className="spd-folder" onClick={() => pick(c.slug)}>
               <div className="spd-collage">
                 {c.imageIds.map((id, i) => (
                   <div className="spd-collage-cell" key={id}><img src={collectionImage(id, 300)} alt={`${c.alt} ${i + 1}`} loading="lazy" /></div>
@@ -157,10 +165,11 @@ export function SearchOverlay() {
             <span className="spd-footer-copy">© 2026 Müəllif hüquqları ilə qorunur.</span>
           </div>
           <div className="spd-footer-links">
-            <a href="#">İş birliyi</a>
-            <a href="#">İradlar</a>
-            <a href="#">Təkliflər</a>
-            <a href="#">Kontakt</a>
+            {/* All four go to Settings → Dəstək until dedicated pages exist. */}
+            <Link href="/settings" onClick={close}>İş birliyi</Link>
+            <Link href="/settings" onClick={close}>İradlar</Link>
+            <Link href="/settings" onClick={close}>Təkliflər</Link>
+            <Link href="/settings" onClick={close}>Kontakt</Link>
           </div>
           <div className="spd-footer-socials">
             <div className="spd-social-btn">

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { REEL_COMMENTS, SHARE_CONTACTS } from "@/data/content";
 import { useUI } from "@/providers/UIProvider";
 import { copyText } from "@/lib/storage-client";
+import { pressable } from "@/lib/a11y";
 
 function Sheet({ title, maxHeight, onClose, children }: { title: string; maxHeight: string; onClose: () => void; children: React.ReactNode }) {
   useEffect(() => {
@@ -96,8 +97,8 @@ export function ReelShareSheet({ onClose }: { onClose: () => void }) {
       <div style={{ padding: ".85rem 1.25rem", overflowY: "auto", flex: 1 }}>
         <div id="reels-share-contacts" style={{ display: "flex", gap: ".5rem", overflowX: "auto", scrollbarWidth: "none", paddingBottom: ".5rem" }}>
           {SHARE_CONTACTS.map((c) => (
-            <div
-              key={c.name}
+            <div key={c.name}
+              {...pressable}
               className="share-contact"
               onClick={() => {
                 setSent((s) => [...s, c.name]);
@@ -137,11 +138,11 @@ export function ReelOptionsMenu({ reelId, onClose }: { reelId: number | null; on
   return (
     <>
       <div id="three-dots-modal" className={`three-dots-modal${open ? " open" : ""}`} role="menu">
-        <div className="modal-item" id="save-item" onClick={act("Məhsul saxlanıldı")}>📌 Saxla</div>
-        <div className="modal-item" id="copy-link-item" onClick={act("Link kopyalandı", () => copyText(`https://hobbi.az/reels/${reelId}`))}>
+        <div {...pressable} className="modal-item" id="save-item" onClick={act("Məhsul saxlanıldı")}>📌 Saxla</div>
+        <div {...pressable} className="modal-item" id="copy-link-item" onClick={act("Link kopyalandı", () => copyText(`https://hobbi.az/reels/${reelId}`))}>
           🔗 Linki kopyala və ya Paylaş
         </div>
-        <div className="modal-item" id="report-item" onClick={act("Şikayətiniz qeydə alındı")}>⚠️ Şikayət bildir</div>
+        <div {...pressable} className="modal-item" id="report-item" onClick={act("Şikayətiniz qeydə alındı")}>⚠️ Şikayət bildir</div>
       </div>
       <div id="modal-overlay-dark" className={`modal-overlay-dark${open ? " active" : ""}`} onClick={onClose} />
     </>

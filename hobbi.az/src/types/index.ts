@@ -1,5 +1,7 @@
 /** Category slugs used by the home feed filters (kept identical to the legacy markup). */
-export type CategorySlug = "all" | "keramika" | "resm" | "zergerllik" | "toxuculuq" | "agac" | "musiqi" | "digər";
+export const CATEGORY_SLUGS = ["all", "keramika", "resm", "zergerllik", "toxuculuq", "agac", "musiqi", "digər"] as const;
+export type CategorySlug = (typeof CATEGORY_SLUGS)[number];
+export const isCategorySlug = (v: unknown): v is CategorySlug => (CATEGORY_SLUGS as readonly unknown[]).includes(v);
 
 export interface Product {
   id: number;

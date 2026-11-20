@@ -1,18 +1,25 @@
 "use client";
 
-import { useState } from "react";
 import type { Product } from "@/types";
 import { useUI } from "@/providers/UIProvider";
 import { ImageWithFallback } from "@/components/ui/ImageWithFallback";
 import { IconCart, IconHeartFilled, IconHeartOutline } from "@/components/icons";
 
 export function ProductCard({ product: p, index }: { product: Product; index: number }) {
-  const { openProduct, toast } = useUI();
-  // The prototype pre-liked a few cards to show the filled-heart state.
-  const [liked, setLiked] = useState(p.liked ?? (index === 0 || index === 3 || index === 4));
+  const { openProduct, toast, isFavorite, toggleFavorite } = useUI();
+  const liked = isFavorite(p.id);
 
   return (
-    <article className="card product-card fade-up" style={{ animationDelay: `${index * 0.05}s` }} onClick={() => openProduct(p.id)}>
+    <article
+      className="card product-card fade-up"
+      style={{ animationDelay: `${index * 0.05}s` }}
+      onClick={() => openProduct(p.id)}
+      onKeyDown={(e) => {
+        if (e.target === e.currentTarget && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); openProduct(p.id); }
+      }}
+      tabIndex={0}
+      aria-label={`${p.title}, ${p.price || "45"} ₼`}
+    >
       <div className="card-image-wrapper product-img-wrap">
         <ImageWithFallback
           className="card-image pimg pimg-photo"
@@ -32,7 +39,7 @@ export function ProductCard({ product: p, index }: { product: Product; index: nu
           data-liked={liked}
           onClick={(e) => {
             e.stopPropagation();
-            setLiked((v) => !v);
+            toggleFavorite(p.id);
           }}
         >
           <IconHeartOutline className="heart-outline" />

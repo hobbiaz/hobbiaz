@@ -8,11 +8,12 @@ import { useUI } from "@/providers/UIProvider";
 import type { Review } from "@/types";
 import {
   IconChevronDown, IconChevronUp, IconFlag, IconPdBack, IconPdBasket, IconPdComment, IconPdHeart,
-  IconPdInstagram, IconPdMore, IconPdShare, IconPdTiktok, IconPhone, IconPhoneRevealed, IconShareSmall,
+  IconPdMore, IconPdShare, IconPhone, IconPhoneRevealed, IconShareSmall,
 } from "@/components/icons";
 import { Discovery } from "./Discovery";
 import { Reviews } from "./Reviews";
 import { SellerPanel, type SellerRef } from "./SellerPanel";
+import { pressable } from "@/lib/a11y";
 
 const CLOSE_MS = 350;
 const LIKED = "#e85c5c";
@@ -35,7 +36,7 @@ function PhoneButton({ phone, className, id }: { phone: string; className: strin
 
 /** Full-screen product page that slides over the feed (legacy #pd-panel). */
 export function ProductDetailPanel() {
-  const { productId, openProduct, backProduct, toast } = useUI();
+  const { productId, openProduct, backProduct, toast, isFavorite, toggleFavorite } = useUI();
   // Keep rendering the last product during the close animation.
   const [shownId, setShownId] = useState<number | null>(null);
   const [closing, setClosing] = useState(false);
@@ -60,7 +61,6 @@ export function ProductDetailPanel() {
   const [slide, setSlide] = useState(0);
   const [mainImg, setMainImg] = useState(0);
   const [expanded, setExpanded] = useState(false);
-  const [likes, setLikes] = useState<Record<number, { liked: boolean; count: number }>>({});
   const [reviews, setReviews] = useState<Record<number, Review[]>>({});
   const [seller, setSeller] = useState<SellerRef | null>(null);
 
@@ -75,10 +75,11 @@ export function ProductDetailPanel() {
 
   if (!detail) return <div id="pd-panel" role="region" aria-label="Məhsul Təfərrüatı" />;
 
-  const like = likes[detail.id] ?? { liked: false, count: detail.likesCount };
+  // Same wishlist as the product cards, so the heart matches everywhere.
+  const liked = isFavorite(detail.id);
+  const like = { liked, count: detail.likesCount + (liked ? 1 : 0) };
   const productReviews = reviews[detail.id] ?? detail.reviews;
-  const toggleLike = () =>
-    setLikes((l) => ({ ...l, [detail.id]: { liked: !like.liked, count: like.count + (like.liked ? -1 : 1) } }));
+  const toggleLike = () => toggleFavorite(detail.id);
   const desc = expanded ? detail.description : shortDescription(detail.description);
   const hasMore = detail.description.length > DESC_PREVIEW;
   const openSeller = (s: SellerRef) => setSeller(s);
@@ -173,7 +174,7 @@ export function ProductDetailPanel() {
             </header>
             <p className="pd-posted-time pd-lg-only" id="pd-posted-time">Paylaşılma vaxtı: {detail.postedAt}</p>
 
-            <div className="pd-seller-card-desktop pd-lg-only" id="pd-seller-card-desktop" onClick={() => openSeller(detail.creator)}>
+            <div {...pressable} className="pd-seller-card-desktop pd-lg-only" id="pd-seller-card-desktop" onClick={() => openSeller(detail.creator)}>
               <div className="pd-seller-card-left">
                 <div className="pd-seller-card-avatar"><img id="pd-seller-card-img" src={detail.creator.avatar} alt={detail.creator.name} /></div>
                 <div>
@@ -181,10 +182,7 @@ export function ProductDetailPanel() {
                   <div className="pd-seller-card-location" id="pd-seller-card-location">{detail.location}</div>
                 </div>
               </div>
-              <div className="pd-seller-socials">
-                <a href="#" aria-label="Instagram" onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}><IconPdInstagram /></a>
-                <a href="#" aria-label="TikTok" onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}><IconPdTiktok /></a>
-              </div>
+              {/* Seller Instagram/TikTok links render here once sellers can add them (no data yet). */}
             </div>
 
             <div className="pd-interaction-row pd-mobile-only">
@@ -218,7 +216,7 @@ export function ProductDetailPanel() {
             </div>
 
             <div className="pd-creator-section pd-mobile-only">
-              <div className="pd-creator-row" id="pd-creator-row" onClick={() => openSeller(detail.creator)}>
+              <div {...pressable} className="pd-creator-row" id="pd-creator-row" onClick={() => openSeller(detail.creator)}>
                 <div className="pd-creator-avatar" id="pd-creator-avatar">
                   <img id="pd-creator-img" src={detail.creator.avatar} alt={detail.creator.name} />
                 </div>

@@ -4,10 +4,13 @@ import { newConversationSchema } from "@/lib/validators";
 
 export const GET = route(async () => {
   const u = await requireUser();
-  return ok(await db.conversation.findMany({
+  const convs = await db.conversation.findMany({
     where: { participants: { some: { userId: u.id } } },
     include: { participants: { include: { user: { select: { id: true, name: true } } } }, messages: { orderBy: { createdAt: "desc" }, take: 1 }, listing: { select: { id: true, title: true } } },
-  }));
+  });
+  // Most recently active conversation first.
+  const lastAt = (c: (typeof convs)[number]) => (c.messages[0]?.createdAt ?? c.createdAt).getTime();
+  return ok(convs.sort((a, b) => lastAt(b) - lastAt(a)));
 });
 
 export const POST = route(async (req) => {

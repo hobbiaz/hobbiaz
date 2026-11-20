@@ -34,7 +34,8 @@ export const listingSchema = z.object({
   condition: z.enum(["NEW", "USED", "HANDMADE"]).default("NEW"),
   city: z.string().trim().min(2, "Şəhər daxil edin").max(60),
   status: z.enum(["DRAFT", "PUBLISHED"]).default("DRAFT"),
-  images: z.array(imageKey).max(8).default([]),
+  // duplicates are dropped so the same upload is never attached twice
+  images: z.array(imageKey).max(8).default([]).transform((keys) => [...new Set(keys)]),
 });
 export const listingUpdateSchema = listingSchema.partial();
 

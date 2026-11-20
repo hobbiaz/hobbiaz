@@ -13,7 +13,9 @@ export const GET = route<P>(async (_req, { params }) => {
   const u = await requireUser();
   const { id } = await params;
   await assertParticipant(id, u.id);
-  return ok(await db.message.findMany({ where: { conversationId: id }, orderBy: { createdAt: "asc" }, take: 200 }));
+  // Latest 200 messages, returned oldest → newest for display.
+  const latest = await db.message.findMany({ where: { conversationId: id }, orderBy: { createdAt: "desc" }, take: 200 });
+  return ok(latest.reverse());
 });
 
 export const POST = route<P>(async (req, { params }) => {

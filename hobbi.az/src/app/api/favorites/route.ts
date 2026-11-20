@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { db } from "@/lib/db";
-import { route, ok, requireUser, HttpError } from "@/lib/http";
+import { route, ok, requireUser, HttpError, isUniqueViolation } from "@/lib/http";
 
 export const GET = route(async () => {
   const u = await requireUser();
@@ -14,9 +14,13 @@ export const POST = route(async (req) => {
   const { listingId } = z.object({ listingId: z.string().min(1) }).parse(await req.json());
   const listing = await db.listing.findFirst({ where: { id: listingId, status: "PUBLISHED" }, select: { id: true } });
   if (!listing) throw new HttpError(404, "Elan tapılmadı");
-  const key = { userId_listingId: { userId: u.id, listingId } };
-  const existing = await db.favorite.findUnique({ where: key });
-  if (existing) { await db.favorite.delete({ where: key }); return ok({ favorited: false }); }
-  await db.favorite.create({ data: { userId: u.id, listingId } });
+  // deleteMany/create instead of find-then-write, so two quick taps never 500.
+  const removed = await db.favorite.deleteMany({ where: { userId: u.id, listingId } });
+  if (removed.count) return ok({ favorited: false });
+  try {
+    await db.favorite.create({ data: { userId: u.id, listingId } });
+  } catch (e) {
+    if (!isUniqueViolation(e)) throw e;
+  }
   return ok({ favorited: true });
 });
