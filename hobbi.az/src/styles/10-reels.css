@@ -1,0 +1,532 @@
+/* ===== REELS SƏHİFƏSİ XÜSUSİ DİZAYN ===== */
+
+/* Topnav – qara fon, ağ ikonlar, yuxarı kölgə */
+/* Desktop topnav override for video page - removed black bg, now uses theme colors */
+@media (min-width: 1024px) {
+  #page-video .topnav {
+    position: fixed;
+    top: 0;
+    z-index: 200;
+  }
+}
+/* Mobile topnav for video page stays hidden */
+@media (max-width: 1023px) {
+  #page-video .topnav {
+    display: none !important;
+  }
+}
+
+/* Bottom nav – göstər, ağ ikonlar */
+
+#page-video .bottom-nav .bottom-nav-item,
+#page-video .bottom-nav .bn-label,
+#page-video .bottom-nav svg path,
+#page-video .bottom-nav svg circle,
+#page-video .bottom-nav svg rect {
+  color: white !important;
+  stroke: white !important;
+  fill: white !important;
+}
+#page-video .bottom-nav .bottom-nav-item.active {
+  color: #E76262 !important;
+}
+#page-video .bottom-nav .bottom-nav-item.active svg path {
+  fill: #E76262 !important;
+}
+
+/* Sağ sidebar – yeni düymələr */
+
+
+/* Ulduz reytinq overlay (video mərkəzi) */
+.rating-overlay{
+  position:absolute;top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  z-index:25;display:none;flex-direction:column;
+  align-items:center;gap:10px;
+  pointer-events:none;will-change:transform,opacity;
+}
+.rating-overlay.active{
+  display:flex;pointer-events:auto;
+}
+.rating-overlay.pop-in{
+  animation:ratingPopIn .42s cubic-bezier(.34,1.56,.64,1) forwards;
+}
+.rating-overlay.burst-out{
+  animation:ratingBurstOut .48s cubic-bezier(.4,0,.2,1) forwards;
+  pointer-events:none;
+}
+@media(max-width:900px){
+  .rating-overlay{display:none!important;pointer-events:none!important;}
+}
+
+/* ── Mobil: ayrı fixed portal overlay ── */
+#rating-portal{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:10px;
+  position:fixed;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%);
+  z-index:99999;
+  pointer-events:none;
+  visibility:hidden;
+  opacity:0;
+  will-change:transform,opacity;
+}
+#rating-portal.active{
+  visibility:visible;
+  opacity:1;
+  pointer-events:auto;
+}
+#rating-portal.pop-in{
+  animation:ratingPopIn .42s cubic-bezier(.34,1.56,.64,1) forwards;
+}
+#rating-portal.burst-out{
+  animation:ratingBurstOut .48s cubic-bezier(.4,0,.2,1) forwards;
+  pointer-events:none;
+}
+#rating-portal.burst-out::before,
+#rating-portal.burst-out::after{
+  content:'';position:absolute;top:50%;left:50%;
+  width:10px;height:10px;border-radius:50%;pointer-events:none;
+}
+#rating-portal.burst-out::before{
+  box-shadow:
+    28px -18px 0 rgba(255,231,15,.85),
+    -32px -8px 0 rgba(0,210,255,.75),
+    22px 24px 0 rgba(255,231,15,.7),
+    -26px 20px 0 rgba(58,123,213,.65),
+    0 -34px 0 rgba(255,255,255,.55),
+    38px 6px 0 rgba(255,231,15,.6),
+    -18px -28px 0 rgba(0,210,255,.5);
+  animation:burstParticles .48s ease-out forwards;
+}
+#rating-portal.burst-out::after{
+  width:120%;height:120%;transform:translate(-50%,-50%);
+  border:3px solid rgba(255,231,15,.55);background:transparent;
+  animation:burstRing .48s ease-out forwards;
+}
+@keyframes ratingPopIn{
+  0%{opacity:0;transform:translate(-50%,-50%) scale(.15) rotate(-10deg)}
+  55%{opacity:1;transform:translate(-50%,-50%) scale(1.16) rotate(4deg)}
+  75%{transform:translate(-50%,-50%) scale(.94) rotate(-2deg)}
+  100%{opacity:1;transform:translate(-50%,-50%) scale(1) rotate(0)}
+}
+@keyframes ratingBurstOut{
+  0%{opacity:1;transform:translate(-50%,-50%) scale(1);filter:blur(0)}
+  35%{opacity:1;transform:translate(-50%,-50%) scale(1.28);filter:blur(0)}
+  100%{opacity:0;transform:translate(-50%,-50%) scale(2.1);filter:blur(6px)}
+}
+.rating-overlay.burst-out::before,
+.rating-overlay.burst-out::after{
+  content:'';position:absolute;top:50%;left:50%;
+  width:10px;height:10px;border-radius:50%;pointer-events:none;
+}
+.rating-overlay.burst-out::before{
+  box-shadow:
+    28px -18px 0 rgba(255,231,15,.85),
+    -32px -8px 0 rgba(0,210,255,.75),
+    22px 24px 0 rgba(255,231,15,.7),
+    -26px 20px 0 rgba(58,123,213,.65),
+    0 -34px 0 rgba(255,255,255,.55),
+    38px 6px 0 rgba(255,231,15,.6),
+    -18px -28px 0 rgba(0,210,255,.5);
+  animation:burstParticles .48s ease-out forwards;
+}
+.rating-overlay.burst-out::after{
+  width:120%;height:120%;transform:translate(-50%,-50%);
+  border:3px solid rgba(255,231,15,.55);background:transparent;
+  animation:burstRing .48s ease-out forwards;
+}
+@keyframes burstParticles{
+  0%{opacity:1;transform:translate(-50%,-50%) scale(.4)}
+  100%{opacity:0;transform:translate(-50%,-50%) scale(2.6)}
+}
+@keyframes burstRing{
+  0%{opacity:.9;transform:translate(-50%,-50%) scale(.6)}
+  100%{opacity:0;transform:translate(-50%,-50%) scale(2.2)}
+}
+
+.rating-row{
+  display:flex;align-items:center;gap:10px;
+}
+.rating-bar{
+  background:linear-gradient(to right,#00d2ff,#3a7bd5);
+  border-radius:999px;padding:10px 18px;
+  display:flex;align-items:center;
+  box-shadow:0 8px 24px rgba(0,0,0,.28);
+}
+.rating-stars{
+  display:flex;align-items:center;gap:6px;
+}
+.rating-star-btn{
+  background:none;border:none;padding:0;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  line-height:0;transition:transform .12s;
+}
+.rating-star-btn:hover{transform:scale(1.12)}
+.rating-star-btn svg{width:26px;height:26px}
+.rating-star-btn .star-empty{fill:rgba(255,255,255,.92)}
+.rating-star-btn .star-filled{fill:#ffe70f}
+.rating-star-btn.is-filled .star-empty{display:none}
+.rating-star-btn:not(.is-filled) .star-filled{display:none}
+.rating-value{
+  color:#fff;font-weight:700;font-size:1rem;
+  font-style:italic;min-width:34px;white-space:nowrap;
+}
+.rating-value.is-rated{color:#ffe70f}
+.rating-reset-btn,
+.rerating-btn{
+  background:#fff;border:none;border-radius:999px;
+  padding:8px 16px;font-size:.78rem;font-weight:600;
+  color:#8c8c8c;display:inline-flex;align-items:center;
+  gap:6px;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.18);
+  transition:background .18s,transform .12s;
+}
+.rating-reset-btn:hover,
+.rerating-btn:hover{background:#f5f5f5;transform:translateY(-1px)}
+.rating-reset-btn[hidden],
+.rerating-btn[hidden]{display:none!important}
+.rating-reset-btn svg,
+.rerating-btn svg{width:16px;height:16px;flex-shrink:0;color:#8c8c8c}
+.rating-btn.is-rated svg path{fill:#ffe70f!important}
+.rating-btn.star-pop svg{animation:sidebarStarPop .45s cubic-bezier(.34,1.56,.64,1)}
+@keyframes sidebarStarPop{
+  0%{transform:scale(1)}
+  40%{transform:scale(1.35)}
+  100%{transform:scale(1)}
+}
+
+/* Üç nöqtə modalı (bottom sheet) */
+.three-dots-modal {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #1e1e1e;
+  border-radius: 24px 24px 0 0;
+  padding: 20px 16px 30px;
+  z-index: 1001;
+  transform: translateY(100%);
+  transition: transform 0.3s ease;
+  box-shadow: 0 -4px 20px rgba(0,0,0,0.3);
+  max-width: 500px;
+  margin: 0 auto;
+}
+.three-dots-modal.open {
+  transform: translateY(0);
+}
+.modal-overlay-dark {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 1000;
+  display: none;
+}
+.modal-overlay-dark.active {
+  display: block;
+}
+.three-dots-modal .modal-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 0.5px solid #333;
+  cursor: pointer;
+  color: white;
+  font-size: 1rem;
+}
+.three-dots-modal .modal-item:last-child {
+  border-bottom: none;
+}
+.three-dots-modal .modal-item:hover {
+  background: #2c2c2c;
+}
+
+/* Sol alt informasiya paneli */
+.video-info-bottom {
+  margin-top: 8px;
+}
+.profile-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+  margin-bottom: 12px;
+  flex-wrap: nowrap;
+}
+.profile-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.video-creator-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ccc, #aaa);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 1.2rem;
+  color: white;
+}
+.video-creator-name {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.seller-badge {
+  width: 20px;
+  height: 20px;
+}
+
+.caption-text {
+  color: rgba(255,255,255,0.9);
+  font-size: 0.85rem;
+  margin: 8px 0;
+}
+
+/* ===== REELS DƏQİQ DÜZƏLİŞLƏR ===== */
+
+/* Yalnız reels səhifəsində bottom nav qara, iconlar ağ */
+#page-video .bottom-nav {
+  display: flex !important;
+  background: #000000 !important;
+  backdrop-filter: none !important;
+  border-top: 1px solid rgba(255,255,255,0.1);
+  box-shadow: 0 -12px 49.7px 0 rgba(0,0,0,1);
+  position: fixed;
+  bottom: 0;
+  z-index: 50;
+}
+
+#page-video .bottom-nav .bottom-nav-item svg,
+#page-video .bottom-nav .bn-label,
+#page-video .bottom-nav .bottom-nav-item {
+  color: white !important;
+  stroke: white !important;
+  fill: white !important;
+}
+
+/* Video ikonu (ortadakı) içi dolu ağ */
+#page-video .bottom-nav-item[onclick="showPage('video')"] svg path,
+#page-video .bottom-nav-item[onclick="showPage('video')"] svg g path {
+  fill: white !important;
+  stroke: white !important;
+}
+
+/* Aktiv tab (video) fərqli rəng istəsəniz */
+#page-video .bottom-nav-item.active svg path {
+  fill: #E76262 !important;
+}
+
+/* Sağ sidebar ikonlarını aşağı endir, səbət ikonu ünvan/telefon butonları ilə eyni hizada */
+#page-video .video-sidebar {
+  bottom: 160px;
+  right: 16px;
+  gap: 1.25rem;
+}
+
+/* Kölgə effekti – gradientin hündürlüyü artırıldı ki, alt elementləri örtsün */
+.video-gradient {
+  position: absolute;
+  left: 0;
+  right: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.08) 100%);
+  height: 300px;
+  bottom: 0;
+  top: auto;
+  pointer-events: none;
+  z-index: 2;
+}
+.video-frame { position: relative; width: 100%; height: 100%; }
+
+/* Köhnə sifariş et və narıncı səbət butonlarını gizlət */
+.video-cta {
+  display: none !important;
+}
+
+/* Ünvan və Əlaqə butonları (info-tag) – button parametrləri ilə */
+.info-tag {
+  background: rgba(0,0,0,0.15);
+  border: 1.17px solid rgba(255,255,255,0.05);
+  border-radius: 30.51px;
+  padding: 6px 16px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: white;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+.info-tag:hover {
+  background: rgba(0,0,0,0.3);
+}
+
+/* Mesaj Göndər buttonu – tam Figma parametrləri */
+.msg-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 20px;
+  padding: 6px 16px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: -0.1px;
+  color: #FFFFFF;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+.msg-btn:focus-visible {
+  outline: 2px solid #FFFFFF;
+  outline-offset: 2px;
+}
+.msg-btn:hover {
+  background: rgba(255,255,255,0.1);
+  border-color: rgba(255,255,255,0.6);
+}
+
+/* Reels səhifəsində bottom nav hər zaman qara, ikonlar ağ */
+#page-video .bottom-nav {
+  background: #000000 !important;
+  backdrop-filter: none !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 0 -12px 49.7px 0 rgba(0, 0, 0, 1) !important;
+}
+
+#page-video .bottom-nav .bottom-nav-item,
+#page-video .bottom-nav .bn-label,
+#page-video .bottom-nav svg,
+#page-video .bottom-nav svg path,
+#page-video .bottom-nav svg circle,
+#page-video .bottom-nav svg rect,
+#page-video .bottom-nav svg g path {
+  color: white !important;
+  stroke: white !important;
+  fill: white !important;
+}
+
+/* Aktiv halda (məsələn video tab) fərqli rəng istəsəniz, aktiv olanı fərqli edə bilərik */
+#page-video .bottom-nav .bottom-nav-item.active svg path {
+  fill: #E76262 !important;
+  stroke: #E76262 !important;
+}
+
+/* Reels detal və buton konteynerinin navbarın üstündə qalması üçün */
+.video-card .video-details, 
+.video-card .video-overlay,
+.video-card [class*="details"], 
+.video-card [class*="overlay"]:not(.rating-overlay),
+.video-card .profile-section-reels {
+  bottom: calc(var(--bot-h) + 12px) !important;
+  z-index: 99 !important;
+}
+
+/* Əgər sağ tərəfdəki reaksiya butonları da navbardan yuxarı qalxmalıdırsa: */
+.video-card .video-actions,
+.video-card [class*="actions"] {
+  bottom: calc(var(--bot-h) + 20px) !important;
+  z-index: 99 !important;
+}
+
+/* Mobil brauzerlərin dinamik panellərinə uyğunlaşma */
+@media (max-width: 900px) {
+  /* Video səhifəsinin brauzer paneli ilə birlikdə əyilməsinin qarşısını alır */
+  #page-video, .video-player-container, .video-card {
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+  }
+
+  /* Detalların və butonların həmişə navbarın (60px) üstündə sabit qalması */
+  .video-card .video-details,
+  .video-card .video-overlay,
+  .video-card [class*="details"],
+  .video-card [class*="overlay"]:not(.rating-overlay) {
+    position: absolute !important;
+    bottom: calc(var(--bot-h) + 16px) !important;
+    z-index: 999 !important;
+  }
+}
+/* Mobil cihazlarda Reels profil detalları və butonlar qatmanının navbar üzərinə kilidlənməsi */
+@media (max-width: 900px) {
+  /* Videonun kartını mobil brauzerin dinamik ekran ölçüsünə məcbur edirik */
+  .video-card {
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+    position: relative !important;
+  }
+
+  /* Sənin dediyin: Profil şəkli, ad, mesaj, açıqlama, ÜNVAN və ƏLAQƏ butonlarını tutan bütöv qatman */
+  .video-card .video-overlay,
+  .video-card .video-details,
+  .video-card [class*="overlay"]:not(.rating-overlay),
+  .video-card [class*="details"] {
+    position: absolute !important;
+    left: 0 !important;
+    right: 0 !important;
+    /* Altdakı navbarın hündürlüyü (60px) + 8px tam dirənmə və təmiz vizual boşluq */
+    bottom: calc(var(--bot-h) + 8px) !important; 
+    padding: 12px 16px !important;
+    z-index: 50 !important;
+    
+    /* İçindəki elementlərin alt-alta sıxılıb navbarın altına qaçmasının qarşısını alır */
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: flex-end !important;
+    pointer-events: auto !important;
+  }
+
+  /* Əgər ünvan və əlaqə butonlarının xüsusi sinifləri varsa, onların da kəsilməməsini təmin edirik */
+  .video-card .video-action-buttons,
+  .video-card .reels-buttons,
+  .video-card [class*="btn-group"] {
+    margin-top: 8px !important;
+    margin-bottom: 0 !important;
+  }
+
+  /* Profil + açıqlama + ünvan/əlaqə konteyneri: sol-alt, navbarın dərhal üstündə */
+  #page-video .video-frame {
+    position: relative !important;
+  }
+  #page-video .video-frame .video-info {
+    position: absolute !important;
+    left: 0 !important;
+    right: 0 !important;
+    top: auto !important;
+    bottom: calc(var(--bot-h) + 10px) !important;
+    z-index: 15 !important;
+    padding: 0 16px 4px !important;
+    padding-right: 72px !important;
+    pointer-events: auto !important;
+  }
+  #page-video .video-info-bottom {
+    margin-top: 0 !important;
+  }
+  #page-video .info-tags {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+    margin-top: 8px !important;
+  }
+  #page-video .video-gradient {
+    height: 55% !important;
+    z-index: 3 !important;
+  }
+  #page-video .reels-mobile-sidebar.video-sidebar {
+    bottom: calc(var(--bot-h) + 18px) !important;
+    right: 12px !important;
+    z-index: 16 !important;
+  }
+}

@@ -1,0 +1,187 @@
+/* ── SETTINGS PAGE STABLE (head CSS ilə sinxron) ── */
+#page-settings { display:none }
+#page-settings.active {
+  display:block;
+  position:fixed;
+  top:var(--nav-h);left:0;right:0;bottom:0;
+  z-index:1100;
+  background:var(--surface);
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+}
+@media (max-width:1023px){
+  #page-settings.active{top:0;z-index:500}
+}
+@media (min-width:900px) and (max-width:1023px){
+  #page-settings.active{left:var(--sidebar-w)}
+}
+@media (min-width:1024px){
+  #page-settings.active{
+    left:var(--sidebar-collapsed);
+    transition:left .35s cubic-bezier(.25,1,.5,1);
+  }
+  body.settings-open.sidebar-expanded #page-settings.active{
+    left:var(--sidebar-expanded);
+  }
+}
+/* Mobile layout */
+.sp-mobile { display:block }
+.sp-desktop { display:none }
+@media(min-width:900px){
+  .sp-mobile { display:none }
+  .sp-desktop { display:flex; height:100%; min-height:calc(100vh - var(--nav-h)) }
+}
+/* Mobile topbar */
+.sp-mob-topbar {
+  display:flex;align-items:center;gap:.75rem;
+  padding:.65rem 1.1rem .75rem;
+  padding-top:max(.65rem,env(safe-area-inset-top,0px));
+  border-bottom:1px solid var(--outline-var);
+  position:sticky;top:0;background:var(--surface);z-index:5;
+}
+.sp-mob-back {
+  width:38px;height:38px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--on-surface);transition:background .15s;flex-shrink:0;
+}
+.sp-mob-back:hover { background:var(--surface-low) }
+.sp-mob-title { font-family:'Roboto',sans-serif;font-weight:700;font-size:1.05rem;color:var(--on-surface);flex:1 }
+/* Mobile list */
+.sp-mob-list { padding:.5rem 0 5rem }
+.sp-mob-item {
+  display:flex;align-items:center;gap:.9rem;
+  padding:.85rem 1.1rem;cursor:pointer;
+  transition:background .13s;
+  border-bottom:1px solid rgba(0,0,0,.04);
+  min-height:56px;
+}
+.sp-mob-item:active { background:var(--surface-low) }
+.sp-mob-item-icon {
+  width:38px;height:38px;border-radius:10px;
+  background:var(--surface-low);
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;color:var(--on-surface-var);
+}
+.sp-mob-item-text { flex:1;font-family:'Roboto',sans-serif;font-size:.95rem;font-weight:500;color:var(--on-surface) }
+.sp-mob-item-badge { font-size:.78rem;color:var(--primary);font-weight:600;margin-right:.2rem }
+.sp-mob-item-arrow { color:var(--outline);font-size:1.1rem;flex-shrink:0 }
+.sp-mob-item.sp-logout .sp-mob-item-text { color:#e74c4c }
+.sp-mob-item.sp-logout .sp-mob-item-icon { background:rgba(231,76,76,.08) }
+.sp-mob-divider { height:1px;background:var(--outline-var);margin:.3rem .8rem;opacity:.5 }
+.sp-mob-version { text-align:center;padding:1.2rem;font-size:.72rem;color:var(--outline);letter-spacing:.06em;text-transform:uppercase }
+
+/* Desktop two-column layout */
+.sp-desk-sidebar {
+  width:260px;flex-shrink:0;
+  border-right:1px solid var(--outline-var);
+  padding:1.5rem 0;
+  overflow-y:auto;
+}
+.sp-desk-sidebar-head {
+  padding:.2rem 1.25rem 1.2rem;
+  border-bottom:1px solid var(--outline-var);margin-bottom:.75rem;
+}
+.sp-desk-sidebar-avatar {
+  width:48px;height:48px;border-radius:50%;
+  background:var(--primary);color:white;
+  display:flex;align-items:center;justify-content:center;
+  font-weight:700;font-size:1.1rem;margin-bottom:.6rem;
+}
+.sp-desk-sidebar-name { font-weight:700;font-size:.95rem;color:var(--on-surface) }
+.sp-desk-sidebar-sub { font-size:.78rem;color:var(--outline);margin-top:.1rem }
+.sp-desk-nav-item {
+  display:flex;align-items:center;gap:.7rem;
+  padding:.62rem 1.1rem .62rem 1.25rem;
+  cursor:pointer;transition:background .13s;
+  border-radius:0;color:var(--on-surface-var);font-size:.88rem;font-family:'Roboto',sans-serif;font-weight:500;
+}
+.sp-desk-nav-item:hover { background:var(--surface-low);color:var(--on-surface) }
+.sp-desk-nav-item.active { background:var(--primary-container);color:var(--primary);font-weight:600 }
+.sp-desk-nav-item svg { flex-shrink:0;width:18px;height:18px }
+.sp-desk-nav-divider { height:1px;background:var(--outline-var);margin:.5rem .9rem;opacity:.4 }
+.sp-desk-nav-item.sp-desk-logout { color:#e74c4c }
+.sp-desk-nav-item.sp-desk-logout:hover { background:rgba(231,76,76,.07) }
+
+/* Desktop content pane */
+.sp-desk-content {
+  flex:1;padding:2rem 2.5rem;overflow-y:auto;
+  max-width:780px;
+}
+.sp-desk-close-row { display:flex;justify-content:flex-end;margin-bottom:1.2rem }
+.sp-desk-close-btn {
+  width:36px;height:36px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--on-surface-var);transition:background .15s;cursor:pointer;
+}
+.sp-desk-close-btn:hover { background:var(--surface-low) }
+.sp-desk-section-title { font-family:'Fraunces',serif;font-size:1.6rem;font-weight:600;color:var(--on-surface);margin-bottom:.3rem }
+.sp-desk-section-sub { font-size:.88rem;color:var(--outline);margin-bottom:1.8rem }
+/* Bento grid */
+.sp-bento { display:grid;grid-template-columns:1fr 1fr;gap:1rem }
+@media(max-width:1100px){ .sp-bento { grid-template-columns:1fr } }
+.sp-bento-card {
+  background:var(--surface-card);border:1px solid var(--outline-var);
+  border-radius:16px;padding:1.4rem 1.5rem;
+}
+.sp-bento-card.sp-bento-wide { grid-column:1/-1 }
+.sp-bento-card-label { font-size:.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--outline);margin-bottom:.6rem }
+.sp-bento-card-title { font-size:1rem;font-weight:700;color:var(--on-surface);margin-bottom:.25rem }
+.sp-bento-card-val { font-size:.9rem;color:var(--on-surface-var) }
+.sp-bento-edit-btn {
+  margin-top:1rem;padding:.45rem 1.1rem;border-radius:var(--r-full);
+  background:var(--on-surface);color:var(--surface);
+  font-size:.8rem;font-weight:600;font-family:'Roboto',sans-serif;
+  transition:opacity .15s;cursor:pointer;border:none;
+}
+.sp-bento-edit-btn:hover { opacity:.82 }
+.sp-profile-row { display:flex;align-items:center;gap:1rem;padding:.65rem 0;border-bottom:1px solid var(--outline-var) }
+.sp-profile-row:last-child { border-bottom:none }
+.sp-profile-row-label { width:120px;flex-shrink:0;font-size:.8rem;font-weight:600;color:var(--outline);text-transform:uppercase;letter-spacing:.04em }
+.sp-profile-row-val { font-size:.9rem;color:var(--on-surface) }
+/* Additional settings list desktop */
+.sp-desk-extra-list { margin-top:1.5rem }
+.sp-desk-extra-title { font-size:.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--outline);padding:.2rem .1rem .75rem }
+.sp-desk-extra-item {
+  display:flex;align-items:center;gap:.9rem;
+  padding:.85rem 1rem;border-radius:12px;cursor:pointer;
+  transition:background .13s;margin-bottom:.2rem;
+}
+.sp-desk-extra-item:hover { background:var(--surface-low) }
+.sp-desk-extra-icon {
+  width:36px;height:36px;border-radius:9px;
+  background:var(--surface-low);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.sp-desk-extra-text { flex:1;font-size:.88rem;font-weight:500;color:var(--on-surface) }
+.sp-desk-extra-sub { font-size:.78rem;color:var(--outline);margin-top:.1rem }
+.sp-desk-extra-arrow { color:var(--outline);flex-shrink:0 }
+/* CTA card */
+.sp-cta-card {
+  margin-top:1rem;border-radius:16px;padding:1.5rem 1.6rem;
+  background:linear-gradient(135deg,#006B58 0%,#00897B 60%,#1ABC9C 100%);
+  color:white;position:relative;overflow:hidden;
+}
+.sp-cta-card::before {
+  content:'';position:absolute;top:-30px;right:-30px;
+  width:120px;height:120px;border-radius:50%;
+  background:rgba(255,255,255,.1);
+}
+.sp-cta-card-title { font-size:1rem;font-weight:700;margin-bottom:.3rem }
+.sp-cta-card-sub { font-size:.82rem;opacity:.85;margin-bottom:1rem;line-height:1.5 }
+.sp-cta-card-btn {
+  background:white;color:#006B58;font-weight:700;font-size:.82rem;
+  padding:.45rem 1.2rem;border-radius:var(--r-full);border:none;cursor:pointer;
+  font-family:'Roboto',sans-serif;transition:opacity .15s;
+}
+.sp-cta-card-btn:hover { opacity:.9 }
+/* Dark mode adjustments */
+[data-theme="dark"] .sp-bento-card,
+[data-theme="dark"] .sp-desk-sidebar {
+  background:var(--surface-card);border-color:var(--outline-var);
+}
+@media(prefers-color-scheme:dark){
+  [data-theme="auto"] .sp-bento-card,
+  [data-theme="auto"] .sp-desk-sidebar {
+    background:var(--surface-card);border-color:var(--outline-var);
+  }
+}

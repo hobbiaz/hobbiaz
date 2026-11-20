@@ -1,0 +1,16 @@
+/* Legacy hobbi.az design system, split by feature. Order matters (cascade). */
+@import "./01-base.css";
+@import "./02-layout.css";
+@import "./03-cards.css";
+@import "./04-modals.css";
+@import "./05-filter.css";
+@import "./06-listing.css";
+@import "./07-settings.css";
+@import "./08-product-grid.css";
+@import "./09-search.css";
+@import "./10-reels.css";
+@import "./11-desktop.css";
+@import "./12-auth.css";
+@import "./13-settings-page.css";
+@import "./14-product-detail.css";
+@import "./15-app.css";
