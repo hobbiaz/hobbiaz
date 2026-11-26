@@ -1,5 +1,5 @@
-// End-to-end API smoke test (≈50 checks): sign-up with OTP, store, upload, listing,
-// favourites, reviews, orders, messages, reports, password reset, CSRF.
+// End-to-end API smoke test (≈60 checks): sign-up with OTP, store, upload, listing,
+// favourites, reviews, orders, messages (incl. delete-for-me), collections, reports, password reset, CSRF.
 // Needs: dev server running WITHOUT RESEND_API_KEY (so the OTP code is returned),
 // a seeded database (npm run db:seed). Usage:  npm run test:smoke
 // Creates throwaway "seller…@test.local" accounts in the database it talks to — never point it at production.
@@ -135,6 +135,37 @@ r = await call("seller", `/api/conversations/${cid}/messages`, { method: "POST",
 check("seller replies", r.status === 201);
 r = await call("buyer", `/api/conversations/${cid}/messages`);
 check("buyer reads thread", r.data.length === 2 && r.data[1].body === "20 sm");
+// "Delete chat" hides it only for the buyer; a new message brings it back with only the new message.
+r = await call("buyer", `/api/conversations/${cid}`, { method: "DELETE" });
+check("buyer deletes chat (only for self)", r.status === 200);
+r = await call("buyer", "/api/conversations");
+check("deleted chat hidden for buyer", !r.data.some((c) => c.id === cid));
+r = await call("seller", "/api/conversations");
+check("seller still sees chat", r.data.some((c) => c.id === cid));
+r = await call("seller", `/api/conversations/${cid}/messages`, { method: "POST", body: { body: "Hələ var" } });
+r = await call("buyer", `/api/conversations/${cid}/messages`);
+check("chat returns with only newer messages", r.data.length === 1 && r.data[0].body === "Hələ var");
+
+// Collections: needs 8–20 published listings.
+r = await call("", "/api/listings?page=1");
+const pick = r.data.items.slice(0, 8).map((p) => p.id);
+r = await call("buyer", "/api/collections", { method: "POST", body: { title: "Smoke kolleksiya", listingIds: pick.slice(0, 7) } });
+check("collection < 8 rejected", r.status === 400);
+r = await call("buyer", "/api/collections", { method: "POST", body: { title: "Smoke kolleksiya", listingIds: pick } });
+check("collection created", r.status === 201 && r.data.id);
+const colId = r.data.id;
+r = await call("", "/api/collections");
+check("collection listed for everyone", r.status === 200 && r.data.some((c) => c.id === colId && c.images.length === 4));
+r = await call("", `/api/collections/${colId}`);
+check("collection page", r.status === 200 && r.data.items.length === 8);
+r = await call("", "/api/collections/ev-dekoru");
+check("curated collection", r.status === 200 && r.data.curated === true);
+r = await call("buyer", "/api/reels/upload-url", { method: "POST", body: { mime: "video/mp4", size: 1000 } });
+check("buyer cannot upload a video (stores only)", r.status === 403);
+r = await call("seller", "/api/reels/upload-url", { method: "POST", body: { mime: "video/mp4", size: 1000 } });
+check("store gets a video upload slot", r.status === 201 && r.data.key);
+r = await call("", "/api/search/popular");
+check("popular searches", r.status === 200 && Array.isArray(r.data) && r.data.includes("sırğa"));
 
 r = await call("buyer", "/api/reports", { method: "POST", body: { listingId: lid, reason: "OTHER", details: "test" } });
 check("report", r.status === 201);

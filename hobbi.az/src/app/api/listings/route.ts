@@ -25,8 +25,16 @@ export const GET = route(async (req) => {
     db.listing.findMany({ where, orderBy, skip, take, include: listingInclude }),
     db.listing.count({ where }),
   ]);
+  if (filters.q && filters.page === 1 && !filters.owner) void countSearch(filters.q);
   return ok({ items: items.map(toProduct), total, page: filters.page, pageSize: PAGE_SIZE, hasMore: skip + items.length < total });
 });
+
+/** Counts a home-feed search for "Ən çox axtarılanlar" (best effort, never blocks the response). */
+async function countSearch(q: string) {
+  const term = q.toLocaleLowerCase("az").replace(/\s+/g, " ").trim();
+  if (term.length < 2 || term.length > 60) return;
+  await db.searchTerm.upsert({ where: { term }, create: { term }, update: { count: { increment: 1 } } }).catch(() => {});
+}
 
 export const POST = route(async (req) => {
   const user = await requireUser();

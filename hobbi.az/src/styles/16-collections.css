@@ -1,0 +1,82 @@
+/* ── Collections: /collections/<id> and /collections/new ── */
+.collection-page { padding-top: 1rem; }
+.collection-head {
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem;
+  margin-bottom: 1.1rem;
+}
+.collection-title { font-size: 1.45rem; font-weight: 700; color: var(--on-surface); margin: 0; }
+.collection-meta { font-size: .85rem; color: var(--outline); margin-top: .3rem; }
+.collection-empty { color: var(--outline); text-align: center; padding: 3rem 1rem; display: flex; flex-direction: column; align-items: center; gap: 1rem; }
+.collection-share-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  height: 38px; padding: 0 18px; border-radius: 9999px; flex-shrink: 0;
+  border: 1.5px solid var(--outline-var); background: transparent; color: var(--on-surface);
+  font-weight: 600; font-size: .85rem; cursor: pointer; text-decoration: none; font-family: inherit;
+}
+.collection-share-btn:hover { border-color: var(--primary); color: var(--primary); }
+.collection-share-btn.primary { background: var(--primary); border-color: var(--primary); color: #fff; }
+.collection-created {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .9rem;
+  background: #fdf0f0; border: 1px dashed #f0b4b4; border-radius: 16px; padding: 1rem 1.2rem; margin-bottom: 1.2rem;
+}
+.collection-created strong { display: block; color: var(--primary); margin-bottom: .2rem; }
+.collection-created span { font-size: .85rem; color: var(--on-surface-var); }
+.collection-share-row { display: flex; gap: .5rem; flex-wrap: wrap; }
+
+/* Builder: selectable cards */
+#page-collection-new { padding-bottom: 96px; }
+.pick-card { cursor: pointer; position: relative; transition: transform .15s; }
+.pick-card .product-img-wrap { position: relative; }
+.pick-card .product-img-wrap::after {
+  content: ""; position: absolute; inset: 0; border-radius: 16px; pointer-events: none;
+  box-shadow: inset 0 0 0 0 var(--primary); transition: box-shadow .15s;
+}
+.pick-card.is-picked .product-img-wrap::after { box-shadow: inset 0 0 0 3px var(--primary); }
+.pick-card.is-full { opacity: .55; }
+.pick-box {
+  position: absolute; top: 10px; left: 10px; z-index: 2;
+  width: 28px; height: 28px; border-radius: 8px;
+  background: rgba(255,255,255,.92); border: 2px solid #9CA3AF;
+  display: flex; align-items: center; justify-content: center;
+  font-size: .8rem; font-weight: 700; color: #fff; transition: background .15s, border-color .15s;
+}
+.pick-card:hover .pick-box { border-color: var(--primary); }
+.pick-card.is-picked .pick-box { background: var(--primary); border-color: var(--primary); }
+.pick-shop { font-size: .75rem; color: var(--outline); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 55%; }
+
+.pick-bar {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 500;
+  background: var(--surface-nav, #fff); border-top: 1px solid var(--outline-var);
+  box-shadow: 0 -8px 24px rgba(0,0,0,.06);
+}
+.pick-bar-inner {
+  display: flex; align-items: center; gap: .75rem; padding: .75rem 1.25rem; max-width: 1100px; margin: 0 auto;
+}
+.pick-count { font-size: .9rem; color: var(--on-surface); white-space: nowrap; display: flex; flex-direction: column; }
+.pick-count strong { color: var(--primary); font-size: 1.05rem; }
+.pick-count span { font-size: .75rem; color: var(--outline); }
+.pick-title {
+  flex: 1; min-width: 0; height: 42px; border-radius: 12px; padding: 0 .9rem;
+  border: 1.5px solid var(--outline-var); background: var(--surface, #fff); color: var(--on-surface);
+  font-size: .9rem; font-family: inherit; outline: none;
+}
+.pick-title:focus { border-color: var(--primary); }
+.pick-share {
+  height: 42px; padding: 0 20px; border-radius: 12px; border: none; white-space: nowrap;
+  background: var(--primary); color: #fff; font-weight: 700; font-size: .9rem; cursor: pointer; font-family: inherit;
+}
+.pick-share:disabled { background: #D1D5DB; color: #6B7280; cursor: not-allowed; }
+
+@media (min-width: 1024px) {
+  .pick-bar { left: var(--sidebar-collapsed); }
+}
+@media (max-width: 1023px) {
+  .pick-bar { bottom: var(--bot-h); }
+  #page-collection-new { padding-bottom: calc(var(--bot-h) + 110px); }
+}
+@media (max-width: 600px) {
+  .pick-bar-inner { flex-wrap: wrap; padding: .6rem .85rem; }
+  .pick-title { order: 3; flex-basis: 100%; }
+  .pick-share { margin-left: auto; }
+  .collection-head { flex-direction: column; }
+}

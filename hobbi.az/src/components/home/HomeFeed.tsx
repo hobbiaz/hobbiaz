@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useRef } from "react";
 import { CATEGORY_CHIPS, TREND_STORES } from "@/data/content";
 import { useUI } from "@/providers/UIProvider";
 import { ImageWithFallback } from "@/components/ui/ImageWithFallback";
@@ -8,6 +9,9 @@ import { IconFilter, IconStoreCta, IconVerified, IconVerifiedAlt } from "@/compo
 import { ProductCard } from "./ProductCard";
 import type { Product } from "@/types";
 import { pressable } from "@/lib/a11y";
+
+/** Two rows of the widest (5-column) grid. */
+const FIRST_ROWS_COUNT = 10;
 
 function ProductGrid({ id, items }: { id: string; items: Product[] }) {
   return (
@@ -25,7 +29,23 @@ export function HomeFeed() {
     resetCategory();
     document.getElementById("products-grid")?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
-  const half = Math.ceil(products.length / 2);
+  // The first rows sit above "Trend Mağazalar"; everything after (including pages loaded while
+  // scrolling) goes to "Yeni Məhsullar", so already-visible cards never jump between the grids.
+  const half = Math.min(FIRST_ROWS_COUNT, Math.ceil(products.length / 2));
+
+  // Infinite scroll: when the end of the list comes near, fetch the next page automatically.
+  const sentinel = useRef<HTMLDivElement>(null);
+  const loadMoreRef = useRef(loadMore);
+  loadMoreRef.current = loadMore;
+  useEffect(() => {
+    const el = sentinel.current;
+    if (!el || !hasMore) return;
+    const io = new IntersectionObserver((entries) => {
+      if (entries.some((e) => e.isIntersecting)) loadMoreRef.current();
+    }, { rootMargin: "600px 0px" });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [hasMore, products.length]);
 
   return (
     <div className="page active" id="page-home">
@@ -98,7 +118,7 @@ export function HomeFeed() {
       </div>
 
       {hasMore && (
-        <div style={{ display: "flex", justifyContent: "center", margin: "0 0 1.5rem" }}>
+        <div ref={sentinel} style={{ display: "flex", justifyContent: "center", margin: "0 0 1.5rem" }}>
           <button className="store-cta-btn" onClick={loadMore} disabled={feedLoading}>{feedLoading ? "Yüklənir…" : "Daha çox məhsul"}</button>
         </div>
       )}

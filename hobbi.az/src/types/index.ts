@@ -72,7 +72,10 @@ export interface Review {
 }
 
 export interface Reel {
-  id: number;
+  /** Database id, or "demo-N" for the built-in examples. */
+  id: string;
+  /** True for reels stored in the database (comments/likes go to the API). */
+  live?: boolean;
   creator: string;
   creatorAvatar: string;
   isSeller: boolean;
@@ -154,4 +157,23 @@ export interface ProfileData {
   phone: string;
   location: string;
   bio: string;
+}
+
+/** A collection card in the search panel: curated (by category) or made by a user. */
+export interface CollectionSummary {
+  id: string;
+  title: string;
+  /** Number of products in it. */
+  count: number;
+  /** Photos of the first 4 products (the 2×2 collage). */
+  images: string[];
+  /** Newest product / creation time, for "2 gün əvvəl". */
+  updatedAt?: string;
+  curated: boolean;
+  trending?: boolean;
+  ownerName?: string;
+}
+
+export interface CollectionDetail extends CollectionSummary {
+  items: Product[];
 }

@@ -2,9 +2,12 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { CONVERSATIONS, MESSAGE_TABS } from "@/data/content";
-import { IconMsgSearch } from "@/components/icons";
+import { IconMsgSearch, IconPen as PenIcon } from "@/components/icons";
+import { Modal } from "@/components/overlays/Modal";
+import { useIsMobile } from "@/hooks/useMediaQuery";
 import { pressable } from "@/lib/a11y";
 import { api, timeAgo } from "@/lib/api-client";
+import { BULK_MESSAGE_EVENT } from "@/lib/events";
 import { useUI } from "@/providers/UIProvider";
 
 interface Convo {
@@ -26,9 +29,13 @@ function Avatar({ name, src }: { name: string; src?: string | null }) {
     : <div className="convo-avatar-placeholder" style={{ background: gradientFor(name) }}>{name[0]?.toUpperCase()}</div>;
 }
 
-/** Inbox + conversation view. Polls for new messages (no WebSocket). */
+/**
+ * Inbox + conversation. Phones show one or the other; computers show the list on the left and
+ * the open chat on the right. Polls for new messages (no WebSocket).
+ */
 export function MessagesPage() {
   const { backend, user, openAuth, toast, refreshNotifications, openProduct } = useUI();
+  const isMobile = useIsMobile();
   const [tab, setTab] = useState<(typeof MESSAGE_TABS)[number]>("Hamısı");
   const [convos, setConvos] = useState<Convo[] | null>(null);
   const [filter, setFilter] = useState("");
@@ -36,6 +43,8 @@ export function MessagesPage() {
   const [messages, setMessages] = useState<Msg[]>([]);
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState<Convo | null>(null);
+  const [bulkOpen, setBulkOpen] = useState(false);
   const endRef = useRef<HTMLDivElement>(null);
 
   const loadConvos = useCallback(() => {
@@ -52,6 +61,12 @@ export function MessagesPage() {
     const c = new URLSearchParams(window.location.search).get("c");
     if (c) setOpenId(c);
   }, []);
+  // The pen in the top bar opens the bulk message window.
+  useEffect(() => {
+    const open = () => setBulkOpen(true);
+    window.addEventListener(BULK_MESSAGE_EVENT, open);
+    return () => window.removeEventListener(BULK_MESSAGE_EVENT, open);
+  }, []);
 
   const loadThread = useCallback((id: string) => {
     api<Msg[]>(`/api/conversations/${id}/messages`)
@@ -64,12 +79,22 @@ export function MessagesPage() {
   useEffect(() => {
     if (!openId || !user) return;
     setMessages([]);
+    setDraft("");
     loadThread(openId);
     refreshNotifications();
     const t = setInterval(() => { if (document.visibilityState === "visible") loadThread(openId); }, 5_000);
     return () => clearInterval(t);
   }, [openId, user, loadThread, refreshNotifications]);
   useEffect(() => { endRef.current?.scrollIntoView({ block: "end" }); }, [messages]);
+
+  const openChat = (id: string) => {
+    setOpenId(id);
+    window.history.replaceState(window.history.state, "", `/messages?c=${encodeURIComponent(id)}`);
+  };
+  const closeChat = () => {
+    setOpenId(null);
+    window.history.replaceState(window.history.state, "", "/messages");
+  };
 
   const send = async () => {
     const body = draft.trim();
@@ -84,6 +109,19 @@ export function MessagesPage() {
       toast(e instanceof Error ? e.message : "Xəta");
     } finally {
       setSending(false);
+    }
+  };
+
+  const deleteConvo = async (c: Convo) => {
+    setConfirmDelete(null);
+    try {
+      await api(`/api/conversations/${encodeURIComponent(c.id)}`, { method: "DELETE" });
+      setConvos((list) => list?.filter((x) => x.id !== c.id) ?? list);
+      if (openId === c.id) closeChat();
+      refreshNotifications();
+      toast("Mesajlar silindi");
+    } catch (e) {
+      toast(e instanceof Error ? e.message : "Silmək alınmadı");
     }
   };
 
@@ -113,103 +151,213 @@ export function MessagesPage() {
 
   const current = convos?.find((c) => c.id === openId);
 
-  if (openId) {
-    return (
-      <div className="page active" id="page-messages">
-        <div className="messages-wrap" style={{ display: "flex", flexDirection: "column", height: "calc(100dvh - 140px)", minHeight: 360 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: ".75rem", padding: ".5rem 0 .75rem", borderBottom: "1px solid var(--outline-var)" }}>
-            <button onClick={() => { setOpenId(null); window.history.replaceState(window.history.state, "", "/messages"); }} aria-label="Geri" style={{ background: "none", border: 0, fontSize: "1.3rem", cursor: "pointer", color: "var(--on-surface)" }}>←</button>
-            <Avatar name={current?.other?.name ?? "?"} src={current?.other?.avatar} />
-            <div style={{ minWidth: 0 }}>
-              <div className="convo-name">{current?.other?.name ?? "Söhbət"}</div>
-              {current?.listing && (
-                <button {...pressable} onClick={() => openProduct(current.listing!.id)} style={{ background: "none", border: 0, padding: 0, color: "var(--primary)", fontSize: ".8rem", cursor: "pointer", textAlign: "left" }}>
-                  📦 {current.listing.title}
-                </button>
-              )}
-            </div>
-          </div>
-          <div style={{ flex: 1, overflowY: "auto", padding: ".75rem 0", display: "flex", flexDirection: "column", gap: ".4rem" }} aria-live="polite">
-            {messages.map((m) => (
-              <div key={m.id} style={{ alignSelf: m.mine ? "flex-end" : "flex-start", maxWidth: "78%" }}>
-                <div style={{ background: m.mine ? "#e76262" : "var(--surface-low, #f0f1f3)", color: m.mine ? "#fff" : "var(--on-surface)", padding: ".5rem .8rem", borderRadius: m.mine ? "16px 16px 4px 16px" : "16px 16px 16px 4px", whiteSpace: "pre-wrap", wordBreak: "break-word", fontSize: ".9rem" }}>
-                  {m.body}
-                </div>
-                <div style={{ fontSize: ".7rem", color: "var(--outline)", textAlign: m.mine ? "right" : "left", marginTop: ".15rem" }}>{timeAgo(m.createdAt)}</div>
-              </div>
-            ))}
-            <div ref={endRef} />
-          </div>
-          <form onSubmit={(e) => { e.preventDefault(); void send(); }} style={{ display: "flex", gap: ".5rem", paddingTop: ".5rem" }}>
-            <div className="msg-search" style={{ flex: 1, margin: 0 }}>
-              <input type="text" value={draft} onChange={(e) => setDraft(e.target.value)} placeholder="Mesaj yazın..." aria-label="Mesaj" maxLength={2000} />
-            </div>
-            <button type="submit" className="store-cta-btn" disabled={sending || !draft.trim()}>Göndər</button>
-          </form>
+  const thread = openId && (
+    <div className="chat-pane">
+      <div className="chat-head">
+        <button className="chat-back" onClick={closeChat} aria-label="Geri">←</button>
+        <Avatar name={current?.other?.name ?? "?"} src={current?.other?.avatar} />
+        <div style={{ minWidth: 0, flex: 1 }}>
+          <div className="convo-name">{current?.other?.name ?? "Söhbət"}</div>
+          {current?.listing && (
+            <button onClick={() => openProduct(current.listing!.id)} className="chat-listing-link">
+              📦 {current.listing.title}
+            </button>
+          )}
         </div>
+        {current && <button className="convo-delete" onClick={() => setConfirmDelete(current)} aria-label="Bu istifadəçi ilə mesajları sil" title="Mesajları sil">×</button>}
       </div>
-    );
-  }
+      <div className="chat-messages" aria-live="polite">
+        {messages.map((m) => (
+          <div key={m.id} style={{ alignSelf: m.mine ? "flex-end" : "flex-start", maxWidth: "78%" }}>
+            <div className={`chat-bubble${m.mine ? " mine" : ""}`}>{m.body}</div>
+            <div style={{ fontSize: ".7rem", color: "var(--outline)", textAlign: m.mine ? "right" : "left", marginTop: ".15rem" }}>{timeAgo(m.createdAt)}</div>
+          </div>
+        ))}
+        <div ref={endRef} />
+      </div>
+      <form onSubmit={(e) => { e.preventDefault(); void send(); }} className="chat-form">
+        <div className="msg-search" style={{ flex: 1, margin: 0 }}>
+          <input type="text" value={draft} onChange={(e) => setDraft(e.target.value)} placeholder="Mesaj yazın..." aria-label="Mesaj" maxLength={2000} />
+        </div>
+        <button type="submit" className="store-cta-btn" disabled={sending || !draft.trim()}>Göndər</button>
+      </form>
+    </div>
+  );
 
-  return (
-    <div className="page active" id="page-messages">
-      <div className="messages-wrap">
+  const inbox = (
+    <div className="inbox-pane">
+      <div className="inbox-top">
         <div className="msg-search">
           <IconMsgSearch />
           <input type="text" placeholder="Mesajlarda axtar..." value={filter} onChange={(e) => setFilter(e.target.value)} aria-label="Mesajlarda axtar" />
         </div>
-        <div className="filter-tabs">
-          {MESSAGE_TABS.map((t) => (
-            <span key={t} {...pressable} className={`filter-tab${tab === t ? " active" : ""}`} onClick={() => setTab(t)}>{t}</span>
-          ))}
-        </div>
-        <div className="convo-list">
-          {convos === null && <p style={{ textAlign: "center", color: "var(--outline)", padding: "2rem" }}>Yüklənir…</p>}
-          {convos !== null && visible.length === 0 && (
-            <p style={{ textAlign: "center", color: "var(--outline)", padding: "2rem" }}>
-              {convos.length === 0 ? "Hələ mesaj yoxdur. Məhsul səhifəsində \"Maraqlan\" düyməsi ilə satıcıya yazın." : "Uyğun söhbət tapılmadı."}
-            </p>
-          )}
-          {visible.map((c) => (
-            <div key={c.id} {...pressable} className={`convo-item${c.unread ? " unread" : ""}`} onClick={() => setOpenId(c.id)}>
-              <Avatar name={c.other?.name ?? "?"} src={c.other?.avatar} />
-              <div className="convo-body">
-                <div className="convo-name">{c.other?.name ?? "İstifadəçi"}{c.listing ? ` · ${c.listing.title}` : ""}</div>
-                <div className="convo-preview">{c.last ? `${c.last.mine ? "Siz: " : ""}${c.last.body}` : ""}</div>
-              </div>
-              <div className="convo-right">
-                <div className="convo-time">{timeAgo(c.updatedAt)}</div>
-                {c.unread > 0 && <div className="unread-dot" aria-label={`${c.unread} oxunmamış`} />}
-              </div>
+        {/* Phones have no top bar on this page, so the pen lives here. */}
+        {isMobile && <button type="button" className="msg-pen-btn" onClick={() => setBulkOpen(true)} aria-label="Toplu mesaj göndər" title="Toplu mesaj"><PenIcon /></button>}
+      </div>
+      <div className="filter-tabs">
+        {MESSAGE_TABS.map((t) => (
+          <span key={t} {...pressable} className={`filter-tab${tab === t ? " active" : ""}`} onClick={() => setTab(t)}>{t}</span>
+        ))}
+      </div>
+      <div className="convo-list">
+        {convos === null && <p style={{ textAlign: "center", color: "var(--outline)", padding: "2rem" }}>Yüklənir…</p>}
+        {convos !== null && visible.length === 0 && (
+          <p style={{ textAlign: "center", color: "var(--outline)", padding: "2rem" }}>
+            {convos.length === 0 ? "Hələ mesaj yoxdur. Məhsul səhifəsində \"Maraqlan\" düyməsi ilə satıcıya yazın." : "Uyğun söhbət tapılmadı."}
+          </p>
+        )}
+        {visible.map((c) => (
+          <div key={c.id} {...pressable} className={`convo-item${c.unread ? " unread" : ""}${c.id === openId ? " active" : ""}`} onClick={() => openChat(c.id)}>
+            <Avatar name={c.other?.name ?? "?"} src={c.other?.avatar} />
+            <div className="convo-body">
+              <div className="convo-name">{c.other?.name ?? "İstifadəçi"}{c.listing ? ` · ${c.listing.title}` : ""}</div>
+              <div className="convo-preview">{c.last ? `${c.last.mine ? "Siz: " : ""}${c.last.body}` : ""}</div>
             </div>
-          ))}
-        </div>
+            <div className="convo-right">
+              <div className="convo-time">{timeAgo(c.updatedAt)}</div>
+              {c.unread > 0 && <div className="unread-dot" aria-label={`${c.unread} oxunmamış`} />}
+            </div>
+            <button
+              type="button"
+              className="convo-delete"
+              aria-label={`${c.other?.name ?? "İstifadəçi"} ilə mesajları sil`}
+              title="Mesajları sil"
+              onClick={(e) => { e.stopPropagation(); setConfirmDelete(c); }}
+            >
+              ×
+            </button>
+          </div>
+        ))}
       </div>
     </div>
+  );
+
+  return (
+    <div className="page active" id="page-messages">
+      <div className={`messages-wrap messages-layout${openId ? " has-chat" : ""}`}>
+        {(!isMobile || !openId) && inbox}
+        {thread}
+        {!isMobile && !openId && (
+          <div className="chat-pane chat-empty">
+            <div style={{ fontSize: "2.4rem" }} aria-hidden="true">💬</div>
+            <p>Yazışmaq üçün soldan söhbət seçin</p>
+          </div>
+        )}
+      </div>
+
+      <Modal id="convo-delete-modal" open={confirmDelete !== null} onClose={() => setConfirmDelete(null)} boxStyle={{ maxWidth: 380 }}>
+        <div className="confirm-box">
+          <div className="confirm-title">Bu istifadəçi ilə mesajlar silinsin?</div>
+          <p className="confirm-text">{confirmDelete?.other?.name ?? "İstifadəçi"} ilə yazışma yalnız sizdə silinəcək.</p>
+          <div className="confirm-actions">
+            <button type="button" className="confirm-no" onClick={() => setConfirmDelete(null)}>Xeyr</button>
+            <button type="button" className="confirm-yes" onClick={() => confirmDelete && void deleteConvo(confirmDelete)}>Bəli</button>
+          </div>
+        </div>
+      </Modal>
+
+      <BulkMessageModal open={bulkOpen} convos={convos ?? []} onClose={() => setBulkOpen(false)} onSent={loadConvos} />
+    </div>
+  );
+}
+
+/** Pen: one message to several people you've already talked to. */
+function BulkMessageModal({ open, convos, onClose, onSent }: { open: boolean; convos: Convo[]; onClose: () => void; onSent: () => void }) {
+  const { toast } = useUI();
+  const [picked, setPicked] = useState<string[]>([]);
+  const [text, setText] = useState("");
+  const [progress, setProgress] = useState<number | null>(null);
+  useEffect(() => { if (!open) { setPicked([]); setText(""); setProgress(null); } }, [open]);
+
+  const all = picked.length === convos.length && convos.length > 0;
+  const toggle = (id: string) => setPicked((p) => (p.includes(id) ? p.filter((x) => x !== id) : [...p, id]));
+  const busy = progress !== null;
+
+  const send = async () => {
+    const body = text.trim();
+    if (!body || !picked.length) return;
+    setProgress(0);
+    let okCount = 0;
+    for (const [i, id] of picked.entries()) {
+      try {
+        await api(`/api/conversations/${encodeURIComponent(id)}/messages`, { method: "POST", body: { body } });
+        okCount++;
+      } catch { /* counted below */ }
+      setProgress(i + 1);
+    }
+    onSent();
+    toast(okCount === picked.length ? `Mesaj ${okCount} nəfərə göndərildi ✅` : `${okCount}/${picked.length} nəfərə göndərildi`);
+    onClose();
+  };
+
+  return (
+    <Modal id="bulk-message-modal" open={open} onClose={() => !busy && onClose()} boxStyle={{ maxWidth: 460 }}>
+      <button className="modal-close" onClick={() => !busy && onClose()} aria-label="Bağla">×</button>
+      <div className="bulk-box">
+        <div className="confirm-title">Toplu mesaj</div>
+        <p className="confirm-text">Əvvəl yazışdığınız şəxsləri seçin, mesaj hər birinə ayrıca göndəriləcək.</p>
+        {convos.length === 0 ? (
+          <p className="confirm-text">Hələ heç kimlə yazışmamısınız.</p>
+        ) : (
+          <>
+            <label className="bulk-row bulk-all">
+              <input type="checkbox" checked={all} onChange={() => setPicked(all ? [] : convos.map((c) => c.id))} disabled={busy} />
+              Hamısını seç ({convos.length})
+            </label>
+            <div className="bulk-list">
+              {convos.map((c) => (
+                <label key={c.id} className="bulk-row">
+                  <input type="checkbox" checked={picked.includes(c.id)} onChange={() => toggle(c.id)} disabled={busy} />
+                  <Avatar name={c.other?.name ?? "?"} src={c.other?.avatar} />
+                  <span className="bulk-name">{c.other?.name ?? "İstifadəçi"}{c.listing ? <small> · {c.listing.title}</small> : null}</span>
+                </label>
+              ))}
+            </div>
+          </>
+        )}
+        <textarea className="bulk-text" placeholder="Mesajınız..." value={text} onChange={(e) => setText(e.target.value)} maxLength={2000} disabled={busy} />
+        <button type="button" className="reel-upload-submit" disabled={busy || !text.trim() || !picked.length} onClick={send}>
+          {busy ? `Göndərilir… ${progress}/${picked.length}` : `Göndər${picked.length ? ` (${picked.length})` : ""}`}
+        </button>
+      </div>
+    </Modal>
   );
 }
 
 /** Offline demo inbox (no database). */
 function DemoInbox() {
+  const [open, setOpen] = useState<number | null>(null);
+  const c = CONVERSATIONS.find((x) => x.id === open);
   return (
     <div className="page active" id="page-messages">
       <div className="messages-wrap">
         <p style={{ textAlign: "center", color: "var(--outline)", fontSize: ".85rem", margin: ".5rem 0 1rem" }}>Demo rejim: server qoşulmayıb</p>
-        <div className="convo-list">
-          {CONVERSATIONS.map((c) => (
-            <div key={c.id} className={`convo-item${c.unread ? " unread" : ""}`}>
+        {c ? (
+          <div className="chat-pane">
+            <div className="chat-head">
+              <button className="chat-back" style={{ display: "inline-flex" }} onClick={() => setOpen(null)} aria-label="Geri">←</button>
               <div className="convo-avatar-placeholder" style={{ background: c.gradient }}>{c.initial}</div>
-              <div className="convo-body">
-                <div className="convo-name">{c.name}</div>
-                <div className="convo-preview">{c.preview}</div>
-              </div>
-              <div className="convo-right">
-                <div className="convo-time">{c.time}</div>
-                {c.unread && <div className="unread-dot" />}
-              </div>
+              <div className="convo-name">{c.name}</div>
             </div>
-          ))}
-        </div>
+            <div className="chat-messages"><div style={{ alignSelf: "flex-start", maxWidth: "78%" }}><div className="chat-bubble">{c.preview}</div></div></div>
+          </div>
+        ) : (
+          <div className="convo-list">
+            {CONVERSATIONS.map((x) => (
+              <div key={x.id} {...pressable} className={`convo-item${x.unread ? " unread" : ""}`} onClick={() => setOpen(x.id)}>
+                <div className="convo-avatar-placeholder" style={{ background: x.gradient }}>{x.initial}</div>
+                <div className="convo-body">
+                  <div className="convo-name">{x.name}</div>
+                  <div className="convo-preview">{x.preview}</div>
+                </div>
+                <div className="convo-right">
+                  <div className="convo-time">{x.time}</div>
+                  {x.unread && <div className="unread-dot" />}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

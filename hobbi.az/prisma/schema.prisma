@@ -77,6 +77,7 @@ model User {
   reelComments  ReelComment[]
   reports       Report[]   @relation("reporter")
   uploads       Upload[]
+  collections   Collection[]
 }
 
 /// A seller's shop ("mağaza"), created by the onboarding wizard.
@@ -145,6 +146,7 @@ model Listing {
   favorites Favorite[]
   reports  Report[]
   conversations Conversation[]
+  collections   CollectionItem[]
 
   @@index([status, createdAt])
   @@index([categoryId, status])
@@ -199,6 +201,9 @@ model ConversationParticipant {
   userId         String
   /// Messages after this moment count as unread for this participant.
   lastReadAt     DateTime?
+  /// "Delete chat" for this participant only: the chat and its older messages are hidden from them;
+  /// a newer message brings the chat back (showing only what came after).
+  hiddenAt       DateTime?
   conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
   user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   @@id([conversationId, userId])
@@ -296,4 +301,37 @@ model Order {
   seller     User        @relation("seller", fields: [sellerId], references: [id], onDelete: Cascade)
   @@index([buyerId, createdAt])
   @@index([sellerId, status, createdAt])
+}
+
+/// A user-made collection ("Kolleksiya yarat"): 8–20 hand-picked listings, visible to everyone.
+model Collection {
+  id        String           @id @default(cuid())
+  ownerId   String
+  title     String
+  createdAt DateTime         @default(now())
+  owner     User             @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  items     CollectionItem[]
+
+  @@index([createdAt])
+  @@index([ownerId])
+}
+
+model CollectionItem {
+  collectionId String
+  listingId    String
+  position     Int        @default(0)
+  collection   Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  listing      Listing    @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@id([collectionId, listingId])
+  @@index([listingId])
+}
+
+/// How often a search text was used — feeds "Ən çox axtarılanlar" in the search panel.
+model SearchTerm {
+  term      String   @id
+  count     Int      @default(1)
+  updatedAt DateTime @updatedAt
+
+  @@index([count])
 }

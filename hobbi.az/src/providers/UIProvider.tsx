@@ -10,7 +10,7 @@ import { searchProducts } from "@/lib/filters";
 import { api, ApiError } from "@/lib/api-client";
 
 /** Overlays that are mutually exclusive (only one open at a time). */
-export type ModalName = "auth" | "filter" | "listing" | "create" | "share" | "search";
+export type ModalName = "auth" | "filter" | "listing" | "create" | "share" | "search" | "reelUpload";
 export type AuthMode = "register" | "login" | "reset";
 /**
  * "online": the API and database answer — real data.
@@ -70,6 +70,11 @@ interface UIState {
   modal: ModalName | null;
   openModal: (name: ModalName) => void;
   closeModal: () => void;
+  /** The filter sheet opens on top of whatever is showing (the page or the search panel). */
+  filterOpen: boolean;
+  closeFilter: () => void;
+  /** Last texts searched on this device, newest first. */
+  recentSearches: string[];
   // product detail panel (stacked navigation like the legacy history stack)
   productId: string | null;
   openProduct: (id: string, pushCurrent?: boolean) => void;
@@ -80,6 +85,8 @@ interface UIState {
 const UIContext = createContext<UIState | null>(null);
 
 const FAVORITES_KEY = "hobbi_favorites";
+const RECENT_SEARCHES_KEY = "hobbi_recent_searches";
+const RECENT_SEARCHES_MAX = 3;
 const PRODUCT_HASH = /^#producto=([\w-]{1,64})$/;
 
 /** `?cat=` of the current URL when it names a known category, else "all". */
@@ -131,8 +138,11 @@ export function UIProvider({ children }: { children: React.ReactNode }) {
 
   // ── overlays ─────────────────────────────────────────────
   const [modal, setModal] = useState<ModalName | null>(null);
-  const openModal = useCallback((name: ModalName) => setModal(name), []);
+  const [filterOpen, setFilterOpen] = useState(false);
+  // "filter" does not replace the open overlay: it stacks on top of it (e.g. over the search panel).
+  const openModal = useCallback((name: ModalName) => (name === "filter" ? setFilterOpen(true) : setModal(name)), []);
   const closeModal = useCallback(() => setModal(null), []);
+  const closeFilter = useCallback(() => setFilterOpen(false), []);
   const [authMode, setAuthMode] = useState<AuthMode>("register");
   const openAuth = useCallback((mode: AuthMode = "register") => { setAuthMode(mode); setModal("auth"); }, []);
 
@@ -203,8 +213,20 @@ export function UIProvider({ children }: { children: React.ReactNode }) {
     setQuery("");
     router.push(cat === "all" ? "/" : `/?cat=${encodeURIComponent(cat)}`, { scroll: false });
   }, [router]);
+  const [recentSearches, setRecentSearches] = useState<string[]>([]);
+  useEffect(() => {
+    const saved = readJSON<unknown>(RECENT_SEARCHES_KEY, []);
+    if (Array.isArray(saved)) setRecentSearches(saved.map(String).slice(0, RECENT_SEARCHES_MAX));
+  }, []);
   const search = useCallback((q: string) => {
     const text = q.trim();
+    if (text) {
+      setRecentSearches((list) => {
+        const next = [text, ...list.filter((x) => x.toLocaleLowerCase("az") !== text.toLocaleLowerCase("az"))].slice(0, RECENT_SEARCHES_MAX);
+        writeStorage(RECENT_SEARCHES_KEY, JSON.stringify(next));
+        return next;
+      });
+    }
     setCategory("all");
     setQuery(text);
     setFiltered(null);
@@ -380,20 +402,21 @@ export function UIProvider({ children }: { children: React.ReactNode }) {
 
   // Lock page scroll while any overlay is open (legacy: body.style.overflow = 'hidden').
   useEffect(() => {
-    const locked = modal !== null && modal !== "search" || productId !== null;
+    const locked = modal !== null && modal !== "search" || filterOpen || productId !== null;
     document.body.style.overflow = locked ? "hidden" : "";
-  }, [modal, productId]);
+  }, [modal, filterOpen, productId]);
 
   // Escape closes the active modal, or else steps back out of the product panel.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== "Escape") return;
-      if (modal !== null) setModal(null);
+      if (filterOpen) setFilterOpen(false);
+      else if (modal !== null) setModal(null);
       else if (productId !== null) backProduct();
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
-  }, [modal, productId, backProduct]);
+  }, [modal, filterOpen, productId, backProduct]);
 
   // Memoised so consumers re-render only when something they can read changed.
   const value = useMemo<UIState>(() => ({
@@ -402,12 +425,12 @@ export function UIProvider({ children }: { children: React.ReactNode }) {
     category, filterCategory, resetCategory, search, query, products, catalog, feedLoading, hasMore, loadMore, refreshFeed,
     setFilteredProducts: setFiltered, getProduct, fetchProduct, rememberProducts,
     isFavorite, toggleFavorite, notifications, unreadMessages, markNotificationsSeen, refreshNotifications,
-    modal, openModal, closeModal, productId, openProduct, backProduct, closeProduct,
+    modal, openModal, closeModal, filterOpen, closeFilter, recentSearches, productId, openProduct, backProduct, closeProduct,
   }), [toast, reelsToast, theme, setTheme, lang, setLang, backend, user, refreshUser, logout, requireAuth, authMode, openAuth,
     category, filterCategory, resetCategory, search, query, products, catalog, feedLoading, hasMore, loadMore, refreshFeed,
     getProduct, fetchProduct, rememberProducts, isFavorite, toggleFavorite,
     notifications, unreadMessages, markNotificationsSeen, refreshNotifications,
-    modal, openModal, closeModal, productId, openProduct, backProduct, closeProduct]);
+    modal, openModal, closeModal, filterOpen, closeFilter, recentSearches, productId, openProduct, backProduct, closeProduct]);
 
   return (
     <UIContext.Provider value={value}>

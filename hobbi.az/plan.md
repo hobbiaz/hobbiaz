@@ -10,6 +10,7 @@
   - sevimlilər, rəylər;
   - sifarişlər, mesajlar, bildirişlər;
   - şikayətlər və admin paneli.
+  - kolleksiyalar (seçilmiş + istifadəçilərin yaratdığı), Lentə video yükləmə, mesajlarda toplu göndərmə və söhbəti silmə.
 - **Lokal yoxlama:** typecheck, lint, 41 test və production build keçir. Tam axın lokal bazada interfeys üzərindən sınanıb.
 - **Baza olmadan:** sayt "demo rejim"də açılır və nümunə məhsullar göstərir.
 - **Hələ edilməyib:** sayt canlıda deyil. Xidmət hesabları açılmayıb, e-poçt xidməti qoşulmayıb.
@@ -41,6 +42,7 @@ Hər addımı bitirəndə `[ ]` işarəsini `[x]` edin. Ətraflı izah: [DEPLOY.
   - Access Key ID → `R2_ACCESS_KEY_ID`
   - Secret → `R2_SECRET_ACCESS_KEY`
   - `R2_BUCKET` = `hobbi-media`
+- [ ] Bucket → **Settings → CORS policy**: Lentə video yükləmək üçün lazımdır. Hazır mətn [DEPLOY.md](DEPLOY.md)-dədir (addım 2.4).
 
 ### 4. Resend: e-poçt kodları (~10 dəq + DNS)
 - [ ] resend.com → **API Keys** → **Create** → `RESEND_API_KEY`.
@@ -91,6 +93,7 @@ Hər addımı bitirəndə `[ ]` işarəsini `[x]` edin. Ətraflı izah: [DEPLOY.
 - [ ] `https://hobbi.az/api/health` → `"ok":true`. `services` bölməsində `r2`, `upstash`, `resend` yazılmalıdır.
 - [ ] "Mağaza Aç" → e-poçta kod gəlir → mağaza yaranır.
 - [ ] Profil → "Yeni elan" → şəkil yüklənir → elan ana səhifədə görünür.
+- [ ] Lent → "Video yüklə" → video yüklənir və lentdə oynayır.
 - [ ] Başqa hesabla: "Maraqlan" mesaj göndərir, "Sifariş et" satıcıya bildiriş və e-poçt göndərir.
 - [ ] Admin e-poçtu ilə daxil olun → `/admin` açılır.
 
@@ -105,7 +108,7 @@ Hər addımı bitirəndə `[ ]` işarəsini `[x]` edin. Ətraflı izah: [DEPLOY.
 ## C. Növbəti inkişaf (Claude edəcək)
 
 1. Gmail SMTP və ya SMS ilə kod göndərmə (B bölməsindəki qərardan asılıdır).
-2. Reels: video yükləmə (R2) və real lent. Hazırda reels demo datadır.
+2. ~~Reels: video yükləmə (R2) və real lent.~~ Hazırdır (2026-11-26).
 3. Rus dili: tərcümə sistemi (i18n).
 4. Mesajlar: canlı yenilənmə (SSE). Hazırda yeni mesajlar 5 saniyədə bir yoxlanılır.
 5. Şəkillərin `next/image` ilə optimallaşdırılması.

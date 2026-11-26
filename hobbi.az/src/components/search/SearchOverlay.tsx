@@ -2,12 +2,53 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { collectionImage, COLLECTION_TO_CATEGORY, SEARCH_COLLECTIONS } from "@/data/content";
+import { useRouter } from "next/navigation";
 import { useIsMobile } from "@/hooks/useMediaQuery";
+import { useCollections, usePopularSearches } from "@/hooks/useCollections";
 import { useUI } from "@/providers/UIProvider";
-import type { SearchCollection } from "@/types";
-import { IconInstagram, IconSomBack, IconSomCamera, IconSomSearch, IconSpdAction1, IconSpdAction2, IconSpdCamera, IconSpdLogo, IconSpdSearch, IconTiktok, IconTrend } from "@/components/icons";
+import type { CollectionSummary } from "@/types";
+import { IconInstagram, IconSomBack, IconSomCamera, IconSomSearch, IconSpdCamera, IconSpdLogo, IconSpdSearch, IconTiktok, IconTrend } from "@/components/icons";
 import { pressable } from "@/lib/a11y";
+import { timeAgo } from "@/lib/api-client";
+
+const metaOf = (c: CollectionSummary) =>
+  [`${c.count} əşya`, c.ownerName, c.updatedAt ? timeAgo(c.updatedAt) : ""].filter(Boolean).join(" • ");
+
+/** 2×2 collage from the first 4 product photos; empty cells get a soft placeholder. */
+function Collage({ c, cellClass }: { c: CollectionSummary; cellClass: string }) {
+  const cells = [0, 1, 2, 3].map((i) => c.images[i] ?? "");
+  return (
+    <>
+      {cells.map((src, i) => (
+        <div className={cellClass} key={i} style={src ? undefined : { background: "#F3F4F6" }}>
+          {src ? <img src={src} alt={`${c.title} ${i + 1}`} loading="lazy" /> : null}
+        </div>
+      ))}
+    </>
+  );
+}
+
+/** "Son axtarışlar" + "Ən çox axtarılanlar" shown under the empty search field. */
+function Suggestions({ recent, popular, onPick, className }: { recent: string[]; popular: string[]; onPick: (t: string) => void; className: string }) {
+  const top = popular.filter((p) => !recent.some((r) => r.toLocaleLowerCase("az") === p)).slice(0, 3);
+  if (!recent.length && !top.length) return null;
+  return (
+    <div className={className} role="listbox" aria-label="Axtarış təklifləri" onMouseDown={(e) => e.preventDefault()}>
+      {recent.length > 0 && <div className="search-suggest-head">Son axtarışlar</div>}
+      {recent.map((t) => (
+        <div key={"r" + t} {...pressable} role="option" aria-selected={false} className="search-suggest-item" onClick={() => onPick(t)}>
+          <span className="search-suggest-icon" aria-hidden="true">🕘</span>{t}
+        </div>
+      ))}
+      {top.length > 0 && <div className="search-suggest-head">Ən çox axtarılanlar</div>}
+      {top.map((t) => (
+        <div key={"p" + t} {...pressable} role="option" aria-selected={false} className="search-suggest-item" onClick={() => onPick(t)}>
+          <span className="search-suggest-icon" aria-hidden="true">🔥</span>{t}
+        </div>
+      ))}
+    </div>
+  );
+}
 
 type Phase = "closed" | "open" | "closing";
 
@@ -16,9 +57,13 @@ type Phase = "closed" | "open" | "closing";
  * drop-down panel with a dimmed backdrop on desktop. Browser "back" closes it.
  */
 export function SearchOverlay() {
-  const { modal, openModal, closeModal, filterCategory, search } = useUI();
+  const { modal, openModal, closeModal, search, recentSearches, requireAuth, openAuth, user } = useUI();
+  const router = useRouter();
   const isMobile = useIsMobile();
   const isOpen = modal === "search";
+  const collections = useCollections(isOpen);
+  const popular = usePopularSearches(isOpen);
+  const [suggestOpen, setSuggestOpen] = useState(false);
   const [phase, setPhase] = useState<Phase>("closed");
   const somInput = useRef<HTMLInputElement>(null);
   const spdInput = useRef<HTMLInputElement>(null);
@@ -52,7 +97,21 @@ export function SearchOverlay() {
     close();
     search(text);
   };
-  const pick = (slug: SearchCollection["slug"]) => { close(); filterCategory(COLLECTION_TO_CATEGORY[slug]); };
+  const pick = (id: string) => { close(); router.push(`/collections/${encodeURIComponent(id)}`); };
+  const pickSuggestion = (text: string) => { setSuggestOpen(false); close(); search(text); };
+  const createCollection = () => {
+    if (!requireAuth("Kolleksiya yaratmaq üçün daxil olun")) return;
+    close();
+    router.push("/collections/new");
+  };
+  const inputHandlers = {
+    onFocus: (e: React.FocusEvent<HTMLInputElement>) => setSuggestOpen(!e.currentTarget.value),
+    onBlur: () => setSuggestOpen(false),
+    onInput: (e: React.FormEvent<HTMLInputElement>) => setSuggestOpen(!e.currentTarget.value),
+  };
+  const suggestions = (className: string) =>
+    suggestOpen && <Suggestions className={className} recent={recentSearches} popular={popular} onPick={pickSuggestion} />;
+  const list = collections ?? [];
 
   const mobileCls = isMobile ? (phase === "open" ? "anim-enter" : phase === "closing" ? "anim-exit" : undefined) : undefined;
   const panelCls = !isMobile ? (phase === "open" ? "spd-open" : phase === "closing" ? "spd-closing" : undefined) : undefined;
@@ -67,27 +126,30 @@ export function SearchOverlay() {
           <IconSomBack />
         </button>
         <div className="som-search-box">
-          <input ref={somInput} id="som-input" type="search" placeholder="hobbi'də axtar" aria-label="Axtarış" enterKeyHint="search" onKeyDown={onSearchKey} />
+          <input ref={somInput} id="som-input" type="search" placeholder="hobbi'də axtar" aria-label="Axtarış" enterKeyHint="search" onKeyDown={onSearchKey} {...inputHandlers} />
           <div className="som-search-icons">
             <IconSomSearch />
             <div className="som-divider"></div>
-            <IconSomCamera />
+            <button type="button" className="search-filter-btn" onClick={() => openModal("filter")} aria-label="Filtrlər"><IconSomCamera /></button>
           </div>
         </div>
+      </div>
+      {suggestions("search-suggest search-suggest-mobile")}
+
+      <div className="som-actions">
+        <button type="button" className="collection-create-btn" onClick={createCollection}>+ Kolleksiya yarat</button>
       </div>
 
       {/* Category Grid */}
       <div className="som-grid">
-        {SEARCH_COLLECTIONS.map((c) => (
-          <div key={c.slug} {...pressable} className="som-card" onClick={() => pick(c.slug)}>
+        {list.map((c) => (
+          <div key={c.id} {...pressable} className="som-card" onClick={() => pick(c.id)}>
             <div className="som-collage">
               {c.trending && <div className="som-trend-badge"><IconTrend /></div>}
-              {c.imageIds.map((id, i) => (
-                <div className="som-collage-cell" key={id}><img src={collectionImage(id, 200)} alt={`${c.alt} ${i + 1}`} loading="lazy" /></div>
-              ))}
+              <Collage c={c} cellClass="som-collage-cell" />
             </div>
-            <div className="som-card-title">{c.mobileTitle}</div>
-            <div className="som-card-meta">{c.mobileMeta}</div>
+            <div className="som-card-title">{c.title}</div>
+            <div className="som-card-meta">{metaOf(c)}</div>
           </div>
         ))}
       </div>
@@ -108,19 +170,15 @@ export function SearchOverlay() {
         {/* Search input */}
         <div className="spd-search-wrap">
           <IconSpdSearch />
-          <input ref={spdInput} id="spd-input" type="search" placeholder="hobbi'də axtar" aria-label="Axtarış" enterKeyHint="search" onKeyDown={onSearchKey} />
+          <input ref={spdInput} id="spd-input" type="search" placeholder="hobbi'də axtar" aria-label="Axtarış" enterKeyHint="search" onKeyDown={onSearchKey} {...inputHandlers} />
           <div className="spd-divider"></div>
-          <IconSpdCamera />
+          <button type="button" className="search-filter-btn" onClick={() => openModal("filter")} aria-label="Filtrlər" title="Filtrlər"><IconSpdCamera /></button>
+          {suggestions("search-suggest search-suggest-desktop")}
         </div>
 
         {/* Right actions */}
         <div className="spd-right-actions">
-          <div className="spd-icon-btn">
-            <IconSpdAction1 />
-          </div>
-          <div className="spd-icon-btn">
-            <IconSpdAction2 />
-          </div>
+          <button type="button" className="collection-create-btn" onClick={createCollection}>+ Kolleksiya yarat</button>
         </div>
       </div>
 
@@ -131,17 +189,16 @@ export function SearchOverlay() {
 
         {/* 4-col grid */}
         <div className="spd-grid" id="spd-grid">
-          {SEARCH_COLLECTIONS.map((c) => (
-            <div key={`${c.slug}-${phase}`} {...pressable} className="spd-folder" onClick={() => pick(c.slug)}>
+          {list.map((c) => (
+            <div key={`${c.id}-${phase}`} {...pressable} className="spd-folder" onClick={() => pick(c.id)}>
               <div className="spd-collage">
-                {c.imageIds.map((id, i) => (
-                  <div className="spd-collage-cell" key={id}><img src={collectionImage(id, 300)} alt={`${c.alt} ${i + 1}`} loading="lazy" /></div>
-                ))}
+                <Collage c={c} cellClass="spd-collage-cell" />
               </div>
-              <div className="spd-folder-title">{c.desktopTitle}</div>
-              <div className="spd-folder-meta">{c.desktopMeta}</div>
+              <div className="spd-folder-title">{c.title}</div>
+              <div className="spd-folder-meta">{metaOf(c)}</div>
             </div>
           ))}
+          {collections === null && <div className="spd-folder-meta">Yüklənir…</div>}
         </div>
 
         {/* Promo banner */}
@@ -150,7 +207,7 @@ export function SearchOverlay() {
             <span className="spd-promo-badge">Yaradıcılığını gəlirə çevir</span>
             <div className="spd-promo-title">Cəmi 2 dəqiqədə öz mağazanı yarat<br />və satışa başla</div>
             <div className="spd-promo-desc">Hobbi.az hər kəsin öz məhsulunu yaradıb sata biləcəyi platformadır</div>
-            <button className="spd-promo-btn" onClick={() => openModal("auth")}>Mağaza Aç</button>
+            <button className="spd-promo-btn" onClick={() => (user ? (close(), router.push("/profile")) : openAuth("register"))}>Mağaza Aç</button>
           </div>
           <div className="spd-promo-images">
             <img className="spd-promo-img" src="https://images.unsplash.com/photo-1586105251261-72a756497a11?w=460&h=560&fit=crop" alt="usta 1" loading="lazy" />

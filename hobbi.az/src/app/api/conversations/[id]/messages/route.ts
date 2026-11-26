@@ -7,15 +7,20 @@ type P = { id: string };
 async function assertParticipant(conversationId: string, userId: string) {
   const p = await db.conversationParticipant.findUnique({ where: { conversationId_userId: { conversationId, userId } } });
   if (!p) throw new HttpError(404, "Söhbət tapılmadı");
+  return p;
 }
 
 // Refresh/poll based messaging (the UI polls every few seconds). Not WebSocket/SSE.
 export const GET = route<P>(async (_req, { params }) => {
   const u = await requireUser();
   const { id } = await params;
-  await assertParticipant(id, u.id);
-  // Latest 200 messages, returned oldest → newest for display.
-  const latest = await db.message.findMany({ where: { conversationId: id }, orderBy: { createdAt: "desc" }, take: 200 });
+  const me = await assertParticipant(id, u.id);
+  // Latest 200 messages, returned oldest → newest for display. A chat I deleted shows only newer ones.
+  const latest = await db.message.findMany({
+    where: { conversationId: id, ...(me.hiddenAt ? { createdAt: { gt: me.hiddenAt } } : {}) },
+    orderBy: { createdAt: "desc" },
+    take: 200,
+  });
   await db.conversationParticipant.update({ where: { conversationId_userId: { conversationId: id, userId: u.id } }, data: { lastReadAt: new Date() } });
   return ok(latest.reverse().map((m) => ({ id: m.id, body: m.body, createdAt: m.createdAt.toISOString(), mine: m.senderId === u.id })));
 });
@@ -30,3 +35,4 @@ export const POST = route<P>(async (req, { params }) => {
   await db.conversationParticipant.update({ where: { conversationId_userId: { conversationId: id, userId: u.id } }, data: { lastReadAt: m.createdAt } });
   return ok({ id: m.id, body: m.body, createdAt: m.createdAt.toISOString(), mine: true }, 201);
 });
+

@@ -269,6 +269,17 @@
   transition: background .18s, transform .15s;
 }
 .store-cta-btn:hover { background: #c94f4f; transform: translateY(-1px); }
+/* Wider screens: text block on the left, button on the right, both vertically centred. */
+@media (min-width: 600px) {
+  .store-cta-banner {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+  }
+  .store-cta-left { align-items: center; }
+  .store-cta-banner .store-cta-btn { height: 40px; padding: 0 22px; flex-shrink: 0; }
+}
 
 .btn-cart-icon {
   width: 34px; height: 34px; border-radius: 50%;

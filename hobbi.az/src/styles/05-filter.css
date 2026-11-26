@@ -185,3 +185,6 @@
   display:flex;align-items:center;justify-content:center;gap:.5rem;
 }
 .filter-apply-btn:hover{background:#F15744}
+
+/* Opened from the search panel: sits on top of it, the panel stays visible behind. */
+#filter-modal.over-search{z-index:10001}

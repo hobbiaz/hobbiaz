@@ -1,0 +1,96 @@
+/* ── Lent (reels): top-bar button, desktop layout, comments side panel, upload modal ── */
+.video-upload-btn {
+  display: inline-flex; align-items: center; gap: .45rem; height: 38px; padding: 0 1rem;
+  border-radius: 9999px; border: none; background: var(--primary); color: #fff;
+  font-weight: 700; font-size: .85rem; font-family: inherit; cursor: pointer; white-space: nowrap;
+  transition: background .18s, transform .15s;
+}
+.video-upload-btn:hover { background: #c94f4f; transform: translateY(-1px); }
+
+@media (min-width: 901px) {
+  /* The top bar floats over the feed so it can slide away while scrolling down. */
+  body.reels-page .topnav {
+    position: fixed; top: 0; left: 0; right: 0;
+    transition: transform .35s cubic-bezier(.25,1,.5,1), margin-left .35s cubic-bezier(.25,1,.5,1), width .35s cubic-bezier(.25,1,.5,1);
+  }
+  body.reels-page.reels-nav-hidden .topnav { transform: translateY(-110%); }
+
+  /* Each video fills the screen; the frame sits below the top bar, never under it or off-screen. */
+  #page-video .video-feed {
+    height: 100vh !important;
+    min-height: 100vh !important;
+    margin-left: 0 !important;
+    width: 100% !important;
+  }
+  #page-video .video-card.reels-desktop {
+    height: 100vh !important;
+    min-height: 100vh !important;
+  }
+  #page-video .reels-stage {
+    padding: calc(var(--nav-h) + 16px) 0 16px !important;
+    box-sizing: border-box;
+  }
+  #page-video .video-frame {
+    width: min(420px, calc((100vh - var(--nav-h) - 32px) * 9 / 16)) !important;
+    max-height: calc(100vh - var(--nav-h) - 32px) !important;
+    transition: transform .42s cubic-bezier(.25,1,.5,1);
+  }
+  #page-video .reels-stage .reels-desktop-sidebar { padding-bottom: 8px !important; }
+
+  /* Comments beside the video: the panel grows from 0 → 380px, so the centred
+     video + actions glide to the left; closing reverses it. */
+  .reel-comments-panel {
+    flex-shrink: 0;
+    width: 0;
+    margin-left: -1.5rem;
+    opacity: 0;
+    overflow: hidden;
+    align-self: center;
+    height: min(746px, calc(100vh - var(--nav-h) - 32px));
+    transition: width .42s cubic-bezier(.25,1,.5,1), margin-left .42s cubic-bezier(.25,1,.5,1), opacity .3s ease;
+  }
+  .reel-comments-panel.is-open { width: 380px; margin-left: 0; opacity: 1; }
+  .reel-comments-inner {
+    width: 380px; height: 100%;
+    background: #1a1a1a; border-radius: 16px; overflow: hidden;
+    display: flex; flex-direction: column;
+    box-shadow: 0 12px 48px rgba(0,0,0,.35);
+  }
+}
+@media (max-width: 900px) {
+  .reel-comments-panel { display: none; }
+}
+
+/* Upload modal */
+.reel-upload { display: flex; flex-direction: column; gap: .7rem; }
+.reel-upload-title { font-size: 1.2rem; font-weight: 700; color: var(--on-surface); }
+.reel-upload-sub { font-size: .82rem; color: var(--outline); margin-top: -.35rem; }
+.reel-upload-drop {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .25rem;
+  min-height: 180px; border: 2px dashed var(--outline-var); border-radius: 16px; background: var(--primary-container);
+  color: var(--on-surface); cursor: pointer; font-family: inherit; font-size: .85rem;
+}
+.reel-upload-drop:hover { border-color: var(--primary); }
+.reel-upload-drop strong { font-size: 1rem; }
+.reel-upload-icon { font-size: 2rem; }
+.reel-upload-preview { position: relative; border-radius: 16px; overflow: hidden; background: #000; }
+.reel-upload-preview video { display: block; width: 100%; max-height: 320px; object-fit: contain; }
+.reel-upload-change {
+  position: absolute; top: 10px; right: 10px; border: none; border-radius: 9999px; padding: .35rem .8rem;
+  background: rgba(0,0,0,.6); color: #fff; font-size: .78rem; cursor: pointer; font-family: inherit;
+}
+.reel-upload-label { font-size: .82rem; font-weight: 600; color: var(--on-surface); }
+.reel-upload-input {
+  height: 44px; border-radius: 12px; border: 1.5px solid var(--outline-var); padding: 0 .9rem;
+  font-size: .9rem; font-family: inherit; background: var(--surface, #fff); color: var(--on-surface); outline: none;
+}
+.reel-upload-input:focus { border-color: var(--primary); }
+.reel-upload-progress { position: relative; height: 30px; border-radius: 9999px; background: var(--primary-container); overflow: hidden; }
+.reel-upload-progress > div { position: absolute; inset: 0 auto 0 0; background: #f3b0b0; transition: width .2s; }
+.reel-upload-progress > span { position: relative; display: flex; height: 100%; align-items: center; justify-content: center; font-size: .8rem; font-weight: 600; color: var(--on-surface); }
+.reel-upload-error { color: #c0392b; font-size: .83rem; }
+.reel-upload-submit {
+  height: 46px; border-radius: 12px; border: none; background: var(--primary); color: #fff;
+  font-weight: 700; font-size: .95rem; cursor: pointer; font-family: inherit; margin-top: .3rem;
+}
+.reel-upload-submit:disabled { background: #D1D5DB; color: #6B7280; cursor: not-allowed; }

@@ -729,3 +729,8 @@ export const IconSponsoredCheck = (props: P) => (
   <svg width="8" height="8" viewBox="0 0 10 8" fill="none" {...props}><path d="M1 4L3.5 6.5L9 1" stroke="white" strokeWidth="1.8" strokeLinecap="round" /></svg>
 );
 
+
+/** Pen — "Toplu mesaj" (Messages top bar). */
+export const IconPen = (props: P) => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" {...props}><path d="M12 20h9" /><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg>
+);

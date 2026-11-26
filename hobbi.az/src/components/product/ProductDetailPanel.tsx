@@ -12,6 +12,7 @@ import {
   IconPdInstagram, IconPdMore, IconPdShare, IconPdTiktok, IconPhone, IconPhoneRevealed, IconShareSmall,
 } from "@/components/icons";
 import { Discovery } from "./Discovery";
+import { ImageLightbox } from "./ImageLightbox";
 import { Reviews } from "./Reviews";
 import { SellerPanel, type SellerRef } from "./SellerPanel";
 import { pressable } from "@/lib/a11y";
@@ -87,6 +88,8 @@ export function ProductDetailPanel() {
   const [slide, setSlide] = useState(0);
   const [mainImg, setMainImg] = useState(0);
   const [expanded, setExpanded] = useState(false);
+  /** Index of the photo open in the full-screen viewer, or null. */
+  const [lightbox, setLightbox] = useState<number | null>(null);
   const [reviews, setReviews] = useState<Record<string, Review[]>>({});
   // Real reviews come from the API (demo products keep their built-in ones).
   useEffect(() => {
@@ -104,6 +107,7 @@ export function ProductDetailPanel() {
     setSlide(0);
     setMainImg(0);
     setExpanded(false);
+    setLightbox(null);
     panelRef.current?.scrollTo({ top: 0 });
     trackRef.current?.scrollTo({ left: 0 });
   }, [shownId]);
@@ -197,13 +201,13 @@ export function ProductDetailPanel() {
                 onScroll={(e) => setSlide(Math.round(e.currentTarget.scrollLeft / e.currentTarget.clientWidth))}
               >
                 {detail.images.map((src, i) => (
-                  <div className="pd-carousel-slide" key={src + i}>
+                  <div className="pd-carousel-slide pd-zoomable" key={src + i} onClick={() => setLightbox(i)}>
                     <img src={src} alt={detail.title} onError={(e) => { e.currentTarget.style.display = "none"; }} />
                   </div>
                 ))}
               </div>
-              <div className="pd-main-img-desktop" id="pd-main-img-desktop" aria-hidden="true">
-                <img className="pd-main-photo" src={detail.images[mainImg]} alt={detail.title} />
+              <div className="pd-main-img-desktop pd-zoomable" id="pd-main-img-desktop" aria-hidden="true" onClick={() => detail.images.length && setLightbox(mainImg)}>
+                <img className="pd-main-photo" src={detail.images[mainImg]} alt={detail.title} title="Böyütmək üçün klikləyin" />
                 <button
                   type="button"
                   className="pd-fav-desktop"
@@ -352,6 +356,17 @@ export function ProductDetailPanel() {
       </div>
 
       <SellerPanel seller={seller} onClose={() => setSeller(null)} onOpenProduct={goTo} />
+      {lightbox !== null && detail.images.length > 0 && (
+        <ImageLightbox
+          title={detail.title}
+          images={detail.images}
+          start={Math.min(lightbox, detail.images.length - 1)}
+          liked={like.liked}
+          onLike={toggleLike}
+          phoneButton={<PhoneButton key={`lb-${detail.id}`} className="pd-reveal-phone-btn lb-phone-btn" phone={detail.phone} />}
+          onClose={() => setLightbox(null)}
+        />
+      )}
     </>
   );
 }

@@ -23,9 +23,12 @@ interface Props {
   onComments: () => void;
   onShare: () => void;
   onMore: () => void;
+  /** Desktop comments panel, placed to the right of the action column. */
+  aside?: React.ReactNode;
+  commentsOpen?: boolean;
 }
 
-export function ReelCard({ reel: v, rating, overlay, fullHeight, onRatingClick, onComments, onShare, onMore }: Props) {
+export function ReelCard({ reel: v, rating, overlay, fullHeight, onRatingClick, onComments, onShare, onMore, aside, commentsOpen }: Props) {
   const { toast } = useUI();
   const [videoFailed, setVideoFailed] = useState(false);
   const [pop, setPop] = useState(false);
@@ -50,7 +53,7 @@ export function ReelCard({ reel: v, rating, overlay, fullHeight, onRatingClick, 
 
   return (
     <div className="video-card reels-desktop" data-video-id={v.id} style={fullHeight ? { height: "100dvh" } : undefined}>
-      <div className="reels-stage">
+      <div className={`reels-stage${commentsOpen ? " comments-open" : ""}`}>
         <div className="video-frame">
           <div className="video-bg-art" style={{ background: v.gradient }}>{v.emoji}</div>
           {v.video && !videoFailed && (
@@ -112,10 +115,12 @@ export function ReelCard({ reel: v, rating, overlay, fullHeight, onRatingClick, 
                   <IconPin />
                   {v.address}
                 </button>
-                <button className="info-tag" onClick={() => { window.location.href = `tel:${v.phone.replace(/\s/g, "")}`; }}>
-                  <IconPhoneWhite />
-                  {v.phone}
-                </button>
+                {v.phone && (
+                  <button className="info-tag" onClick={() => { window.location.href = `tel:${v.phone.replace(/\s/g, "")}`; }}>
+                    <IconPhoneWhite />
+                    {v.phone}
+                  </button>
+                )}
               </div>
             </div>
           </div>
@@ -145,6 +150,7 @@ export function ReelCard({ reel: v, rating, overlay, fullHeight, onRatingClick, 
             <span>Səbətə</span>
           </div>
         </div>
+        {aside}
       </div>
     </div>
   );

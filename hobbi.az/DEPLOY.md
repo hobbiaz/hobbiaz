@@ -14,6 +14,12 @@ Kod hazırdır. Aşağıdakı addımlar hesab, ödəniş və DNS tələb edir, o
 2. **R2 → Manage API tokens → Create API token**: icazə *Object Read & Write*, yalnız `hobbi-media` bucket-ı.
 3. Dəyərlər: `R2_ACCOUNT_ID` (dashboard-un sağında "Account ID"), `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET=hobbi-media`.
    Bucket public olmamalıdır: şəkillər `/api/media/...` vasitəsilə verilir.
+4. **Video yükləmə (Lent) üçün CORS:** videolar böyük olduğu üçün brauzer onları birbaşa R2-yə göndərir.
+   Bucket → **Settings → CORS policy → Edit** və bunu yazın (öz ünvanlarınızla):
+   ```json
+   [{ "AllowedOrigins": ["https://hobbi.az", "https://www.hobbi.az", "https://<layihə>.vercel.app"],
+      "AllowedMethods": ["PUT", "GET"], "AllowedHeaders": ["Content-Type"], "MaxAgeSeconds": 3600 }]
+   ```
 
 ## 3. Resend (e-poçt, OTP kodları), ~10 dəqiqə + DNS
 1. https://resend.com → **API Keys → Create** → `RESEND_API_KEY`.
@@ -61,5 +67,6 @@ Demo mağazalar `isDemo=true` ilə işarələnir. Real satıcılar gələndə on
 - [ ] `/api/health` → `ok: true`
 - [ ] "Mağaza Aç" → e-poçta kod gəlir → mağaza yaranır
 - [ ] Profil → "Yeni elan" → şəkil yüklənir (R2) → ana səhifədə görünür
+- [ ] Lent → "Video yüklə" → video yüklənir (R2, CORS) → lentdə oynayır
 - [ ] Başqa hesabla: Maraqlan → mesaj, Sifariş et → satıcıya e-poçt + bildiriş
 - [ ] `/admin` (admin hesabı ilə) açılır

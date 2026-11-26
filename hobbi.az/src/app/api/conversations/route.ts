@@ -3,7 +3,11 @@ import { route, ok, requireUser, HttpError } from "@/lib/http";
 import { newConversationSchema } from "@/lib/validators";
 import { writeLimiter } from "@/lib/rate-limit";
 
-/** My conversations, most recently active first, with the other person and unread count. */
+/**
+ * My conversations, most recently active first, with the other person and unread count.
+ * A chat I deleted ("hiddenAt") stays out until someone writes in it again; then only the
+ * messages after the deletion count.
+ */
 export const GET = route(async () => {
   const u = await requireUser();
   const convs = await db.conversation.findMany({
@@ -15,11 +19,16 @@ export const GET = route(async () => {
     },
     take: 100,
   });
-  const items = await Promise.all(convs.map(async (c) => {
+  const visible = convs.filter((c) => {
+    const hiddenAt = c.participants.find((p) => p.userId === u.id)?.hiddenAt;
+    return !hiddenAt || (c.messages[0] && c.messages[0].createdAt > hiddenAt);
+  });
+  const items = await Promise.all(visible.map(async (c) => {
     const me = c.participants.find((p) => p.userId === u.id);
     const other = c.participants.find((p) => p.userId !== u.id)?.user;
+    const after = [me?.lastReadAt, me?.hiddenAt].filter((d): d is Date => Boolean(d)).sort((a, b) => b.getTime() - a.getTime())[0];
     const unread = await db.message.count({
-      where: { conversationId: c.id, senderId: { not: u.id }, ...(me?.lastReadAt ? { createdAt: { gt: me.lastReadAt } } : {}) },
+      where: { conversationId: c.id, senderId: { not: u.id }, ...(after ? { createdAt: { gt: after } } : {}) },
     });
     const last = c.messages[0];
     const img = c.listing?.images[0];

@@ -36,8 +36,8 @@ const STATUS_COLOR: Record<Order["status"], string> = {
 const LISTING_STATUS: Record<string, string> = { DRAFT: "Qaralama", PUBLISHED: "Dərc olunub", REMOVED: "Silinib" };
 
 const btn = (primary: boolean): React.CSSProperties => ({
-  flex: "1", minWidth: "140px", height: "44px", background: primary ? "#2563EB" : "#fff", color: primary ? "#fff" : "#3E91C4",
-  border: primary ? "none" : "1.5px solid #3E91C4", borderRadius: "11px", padding: "0 .9rem",
+  height: "42px", background: primary ? "#2563EB" : "#fff", color: primary ? "#fff" : "#3E91C4",
+  border: primary ? "none" : "1.5px solid #3E91C4", borderRadius: "11px", padding: "0 1.4rem",
   fontFamily: "'Manrope','Roboto',sans-serif", fontWeight: "600", fontSize: ".85rem", cursor: "pointer",
 });
 const smallBtn: React.CSSProperties = { border: "1px solid var(--outline-var)", background: "transparent", color: "var(--on-surface)", borderRadius: 8, padding: ".3rem .6rem", fontSize: ".75rem", cursor: "pointer" };
@@ -80,7 +80,7 @@ export function ProfilePage() {
           <div style={{ fontSize: "2.5rem" }} aria-hidden="true">👤</div>
           <h2 style={{ margin: "1rem 0 .5rem" }}>Profilinizə daxil olun</h2>
           <p style={{ color: "var(--on-surface-var)", marginBottom: "1.5rem" }}>Sevimlilər, sifarişlər və mağazanız burada görünəcək.</p>
-          <div style={{ display: "flex", gap: ".55rem", flexWrap: "wrap" }}>
+          <div className="profile-actions" style={{ display: "flex", gap: ".55rem", flexWrap: "wrap", justifyContent: "center" }}>
             <button style={btn(true)} onClick={() => openAuth("login")}>Daxil ol</button>
             <button style={btn(false)} onClick={() => openAuth("register")}>Mağaza aç</button>
           </div>
@@ -162,7 +162,7 @@ export function ProfilePage() {
             📍 {store?.region ?? user.city ?? "Azərbaycan"} · {isSeller ? "Satıcı" : "Alıcı"}{user.role === "ADMIN" ? " · Admin" : ""}
           </div>
           {(store?.bio ?? user.bio) && <div className="profile-bio" style={{ fontSize: ".88rem", color: "#584142", marginBottom: ".9rem" }}>{store?.bio ?? user.bio}</div>}
-          <div style={{ display: "flex", gap: ".55rem", flexWrap: "wrap", marginBottom: "1rem" }}>
+          <div className="profile-actions" style={{ display: "flex", gap: ".55rem", flexWrap: "wrap", marginBottom: "1rem" }}>
             <Link href="/settings" style={{ ...btn(true), display: "inline-flex", alignItems: "center", justifyContent: "center", textDecoration: "none" }}>Düzəliş et</Link>
             {isSeller
               ? <button style={btn(false)} onClick={share}>Mağazanı paylaş</button>

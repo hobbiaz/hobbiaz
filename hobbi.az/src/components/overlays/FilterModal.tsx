@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { useUI } from "@/providers/UIProvider";
 import { applyFilters, DEFAULT_FILTERS, EMPTY_FILTERS, type Feature, type FilterState, type PriceChip } from "@/lib/filters";
 import type { CategorySlug } from "@/types";
@@ -45,7 +46,9 @@ function Section({ label, open, onToggle, children }: { label: string; open: boo
 }
 
 export function FilterModal() {
-  const { modal, closeModal, setFilteredProducts, toast, catalog } = useUI();
+  const { modal, filterOpen, closeFilter, closeModal, setFilteredProducts, toast, catalog } = useUI();
+  const router = useRouter();
+  const pathname = usePathname();
   const [f, setF] = useState<FilterState>(DEFAULT_FILTERS);
   const [open, setOpen] = useState<Record<SectionKey, boolean>>({ cat: true, price: true, feat: true, material: false });
   const flip = (k: SectionKey) => setOpen((o) => ({ ...o, [k]: !o[k] }));
@@ -54,17 +57,20 @@ export function FilterModal() {
   const apply = () => {
     const list = applyFilters(catalog, f);
     setFilteredProducts(list);
-    closeModal();
+    closeFilter();
+    // Opened over the search panel or another page: show the results on the home feed.
+    if (modal === "search") closeModal();
+    if (pathname !== "/") router.push("/");
     toast(`Filtrlər tətbiq edildi (${list.length} məhsul)`);
   };
 
   return (
-    <div id="filter-modal" className={modal === "filter" ? "open" : undefined} onClick={(e) => e.target === e.currentTarget && closeModal()}>
+    <div id="filter-modal" className={`${filterOpen ? "open" : ""}${modal === "search" ? " over-search" : ""}` || undefined} onClick={(e) => e.target === e.currentTarget && closeFilter()}>
       <div className="filter-panel" role="dialog" aria-modal="true" aria-label="Filtrlər">
         <div className="filter-panel-head">
           <div style={{ display: "flex", alignItems: "center", gap: ".5rem" }}>
             <button
-              onClick={closeModal}
+              onClick={closeFilter}
               aria-label="Bağla"
               style={{ background: "none", border: "none", cursor: "pointer", color: "#584142", padding: ".1rem", display: "flex", alignItems: "center" }}
             >

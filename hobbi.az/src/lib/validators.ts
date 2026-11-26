@@ -116,3 +116,23 @@ export const listingQuerySchema = z.object({
   owner: z.string().max(60).optional(),
   ids: z.string().max(2000).optional(),
 });
+
+/** "Kolleksiya yarat": a title and 8–20 distinct listings. */
+export const collectionSchema = z.object({
+  title: z.string().trim().min(2, "Kolleksiyaya ad verin (ən azı 2 simvol)").max(60, "Ad çox uzundur (maks. 60 simvol)"),
+  listingIds: z.array(z.string().min(1).max(64))
+    .min(8, "Ən azı 8 məhsul seçin")
+    .max(20, "Ən çox 20 məhsul seçmək olar")
+    .refine((ids) => new Set(ids).size === ids.length, "Eyni məhsul iki dəfə seçilib"),
+});
+
+/** Step 1 of a reel upload: what the browser is about to send. */
+export const reelUploadSchema = z.object({
+  mime: z.enum(["video/mp4", "video/webm", "video/quicktime"], { errorMap: () => ({ message: "Yalnız MP4, WebM və MOV videoları qəbul edilir" }) }),
+  size: z.number().int().positive().max(100 * 1024 * 1024, "Video 100 MB-dan böyükdür"),
+});
+/** Step 3: publish the uploaded file as a reel. */
+export const reelCreateSchema = z.object({
+  key: z.string().regex(/^[a-f0-9]{32}\.(mp4|webm|mov)$/, "Fayl tapılmadı"),
+  title: z.string().trim().min(2, "Videoya qısa ad yazın").max(120, "Ad çox uzundur (maks. 120 simvol)"),
+});

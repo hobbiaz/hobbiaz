@@ -54,13 +54,13 @@ export const MESSAGE_TABS = ["Hamısı", "Oxunmamışlar", "Satıcılar"] as con
 
 export const REELS: Reel[] = [
   {
-    id: 1, creator: "yourname", creatorAvatar: "Y", isSeller: true, caption: "Qiymətində endirim oldu ✨",
+    id: "demo-1", creator: "yourname", creatorAvatar: "Y", isSeller: true, caption: "Qiymətində endirim oldu ✨",
     address: "Bakı", phone: "050 277 00 77", ratingCount: 5000, commentCount: 6000, shareCount: 7000,
     gradient: "linear-gradient(135deg,#1a4a40,#006b58,#0a8a6d)", emoji: "🏺", title: "Əl işi Turkuaz Vaza",
     video: "https://assets.mixkit.co/videos/16164/16164-720.mp4",
   },
   {
-    id: 2, creator: "zergerstudio", creatorAvatar: "Z", isSeller: true, caption: "Gümüş üzük sənəti",
+    id: "demo-2", creator: "zergerstudio", creatorAvatar: "Z", isSeller: true, caption: "Gümüş üzük sənəti",
     address: "Sumqayıt", phone: "055 123 45 67", ratingCount: 3200, commentCount: 1400, shareCount: 2100,
     gradient: "linear-gradient(135deg,#2d3a4a,#3d5a6a,#4a7a8a)", emoji: "💍", title: "Gümüş üzük sənəti",
     video: "https://assets.mixkit.co/videos/5222/5222-360.mp4",
@@ -90,12 +90,23 @@ const SETS = {
 
 export const SEARCH_COLLECTIONS: SearchCollection[] = [
   { slug: "ev-dekoru", title: "Ev Dekoru", mobileTitle: "Ev Dekoru və Estetika...", mobileMeta: "24 konsept • 7 gün öncə", desktopTitle: "Ev Dekoru və Estetika", desktopMeta: "128 əşya • 2 gün əvvəl", trending: false, imageIds: SETS.dekor, alt: "dekor" },
-  { slug: "ketan-remler", title: "Kətan rəsmlər", mobileTitle: "Kətan rəsmlər", mobileMeta: "16 konsept • 2 gün öncə", desktopTitle: "Kətan rəmlər", desktopMeta: "56 əşya • Dünən", trending: true, imageIds: SETS.ketan, alt: "ketan" },
+  { slug: "ketan-remler", title: "Kətan rəsmlər", mobileTitle: "Kətan rəsmlər", mobileMeta: "16 konsept • 2 gün öncə", desktopTitle: "Kətan rəsmlər", desktopMeta: "56 əşya • Dünən", trending: true, imageIds: SETS.ketan, alt: "ketan" },
   { slug: "hediyyelik", title: "Hədiyyəlik", mobileTitle: "Hədiyyəlik və özəl", mobileMeta: "24 konsept • 7 days", desktopTitle: "Hədiyyəlik və özəl", desktopMeta: "84 əşya • 5 saat əvvəl", trending: false, imageIds: SETS.hediyye, alt: "hediye" },
   { slug: "deb-aksesuar", title: "Dəb və Aksesuar", mobileTitle: "Dəb və Aksesuar", mobileMeta: "16 konsept • 2 gün öncə", desktopTitle: "Dəb və Aksesuar", desktopMeta: "210 əşya • 1 həftə əvvəl", trending: true, imageIds: SETS.aksesuar, alt: "aksesuar" },
 ];
 
 export const collectionImage = (id: string, size: number) => u(id, size);
+
+/**
+ * Which categories fill each curated collection ("Sizin üçün seçilmiş kolleksiyalar").
+ * The collage shows the first 4 listings of the collection.
+ */
+export const COLLECTION_CATEGORIES: Record<SearchCollection["slug"], CategorySlug[]> = {
+  "ev-dekoru": ["keramika", "agac"],
+  "ketan-remler": ["resm"],
+  hediyyelik: ["toxuculuq", "musiqi", "digər"],
+  "deb-aksesuar": ["zergerllik"],
+};
 
 /** Maps a search collection to the home feed category it filters by. */
 export const COLLECTION_TO_CATEGORY: Record<SearchCollection["slug"], CategorySlug> = {
@@ -104,3 +115,6 @@ export const COLLECTION_TO_CATEGORY: Record<SearchCollection["slug"], CategorySl
   hediyyelik: "all",
   "deb-aksesuar": "zergerllik",
 };
+
+/** Default suggestion buttons under the search field (after recent / most searched texts). */
+export const SEARCH_SUGGESTIONS = ["Keramika vaza", "Gümüş sırğa", "Xalça", "Akvarel rəsm", "Ağac oyuncaq", "Əl işi çanta"];

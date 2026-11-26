@@ -1,18 +1,28 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCurrentPage } from "@/hooks/useCurrentPage";
 import { useIsMobile } from "@/hooks/useMediaQuery";
 import { useUI } from "@/providers/UIProvider";
-import { IconLogo, IconSearch } from "@/components/icons";
+import { IconLogo, IconPen, IconSearch } from "@/components/icons";
 import { NotificationsMenu } from "./NotificationsMenu";
 import { ShareMenu } from "./ShareMenu";
 import { pressable } from "@/lib/a11y";
+import { BULK_MESSAGE_EVENT } from "@/lib/events";
 
 export function TopNav() {
   const page = useCurrentPage();
   const isMobile = useIsMobile();
-  const { openModal, resetCategory, user, backend, openAuth } = useUI();
+  const { openModal, resetCategory, user, backend, openAuth, toast } = useUI();
+  const router = useRouter();
+  // Only stores share videos. Signed out → store registration; a buyer account → open a store on the profile.
+  const uploadVideo = () => {
+    if (backend === "offline") { toast("Demo rejim: server qoşulmayıb"); return; }
+    if (!user) { toast("Video paylaşmaq üçün mağaza hesabı lazımdır"); openAuth("register"); return; }
+    if (user.role === "BUYER") { toast("Video paylaşmaq üçün əvvəlcə mağaza açın"); router.push("/profile"); return; }
+    openModal("reelUpload");
+  };
   const avatar = user?.store?.avatarUrl ?? user?.avatarUrl;
   const initial = (user?.store?.name ?? user?.name ?? "?")[0]?.toUpperCase();
 
@@ -50,8 +60,36 @@ export function TopNav() {
       </div>
 
       <div className="topnav-actions">
-        <NotificationsMenu />
-        <ShareMenu />
+        {page === "video" ? (
+          // Lent: the only action is uploading a video.
+          <button
+            type="button"
+            className="video-upload-btn"
+            onClick={uploadVideo}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 16V4M6 10l6-6 6 6M4 20h16" /></svg>
+            Video yüklə
+          </button>
+        ) : page === "messages" ? (
+          <>
+            <NotificationsMenu />
+            {/* Messages: the share menu makes way for "Toplu mesaj" (message several chats at once). */}
+            <button
+              type="button"
+              className="topnav-icon-btn"
+              aria-label="Toplu mesaj göndər"
+              title="Toplu mesaj"
+              onClick={() => window.dispatchEvent(new Event(BULK_MESSAGE_EVENT))}
+            >
+              <IconPen />
+            </button>
+          </>
+        ) : (
+          <>
+            <NotificationsMenu />
+            <ShareMenu />
+          </>
+        )}
         {backend === "online" && !user && (
           <button
             type="button"
