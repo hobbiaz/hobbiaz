@@ -22,13 +22,20 @@ npm run dev                 # http://localhost:3000
 ```
 
 - **Baza olmadan:** sayt açılır və **demo rejimdə** işləyir (nümunə məhsullar, yuxarıda "Demo rejim" qeydi). Qeydiyyat, sifariş və mesajlar üçün baza lazımdır.
-- **Baza ilə:** `.env.example`-ı `.env`-ə kopyalayın, `DATABASE_URL`/`DIRECT_URL` (məs. Neon `dev` branch) və `AUTH_SECRET` doldurun, sonra:
+- **Lokal baza ilə (Docker və ya quraşdırma lazım deyil):**
+  1. `.env.example`-ı `.env`-ə kopyalayın və `DATABASE_URL`/`DIRECT_URL` sahələrinə `postgresql://hobbi:hobbi_local_dev@localhost:5433/hobbi_az?schema=public` yazın. `AUTH_SECRET` də doldurulmalıdır.
+  2. Əmrləri işlədin:
 
 ```bash
-npm run db:deploy           # cədvəllər (prisma/migrations)
+npm run db:local            # 1-ci terminal: PostgreSQL :5433 portunda (data .local-db/ qovluğunda), açıq saxlayın
+npm run db:deploy           # 2-ci terminal: cədvəllər (prisma/migrations)
 npm run db:seed             # 7 demo mağaza, 10 məhsul, demo alıcı (+ admin)
 npm run dev
 ```
+
+- **Neon ilə:** lokal baza əvəzinə `.env`-ə Neon `dev` branch-ın string-lərini yazın. `db:local`-a ehtiyac qalmır.
+- **Məlumatlara baxmaq:** `npm run db:studio` bazanı brauzerdə açır.
+- **API smoke test:** dev server və seed edilmiş baza işləyərkən `npm run test:smoke` təxminən 50 yoxlama aparır.
 
 **Development-də OTP:** `RESEND_API_KEY` yoxdursa, təsdiq kodu e-poçta getmir. Kod ekranda "Test rejimi: kod 123456" kimi və server konsolunda görünür.
 
