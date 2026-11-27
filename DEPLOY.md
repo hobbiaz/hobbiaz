@@ -16,6 +16,7 @@ Kod hazırdır. Aşağıdakı addımlar hesab, ödəniş və DNS tələb edir, o
 2. **R2 → Manage API tokens → Create API token**: icazə *Object Read & Write*, yalnız `hobbi-media` bucket-ı.
 3. Dəyərlər: `R2_ACCOUNT_ID` (dashboard-un sağında "Account ID"), `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET=hobbi-media`.
    Bucket public olmamalıdır: şəkillər `/api/media/...` vasitəsilə verilir.
+   Bucket **Specify jurisdiction → EU** ilə yaradılıbsa (S3 API ünvanında `.eu.` var), `.env`/Vercel-ə `R2_JURISDICTION="eu"` də yazın.
 4. **Video yükləmə (Lent) üçün CORS:** videolar böyük olduğu üçün brauzer onları birbaşa R2-yə göndərir.
    Bucket → **Settings → CORS policy → Edit** və bunu yazın (öz ünvanlarınızla):
    ```json

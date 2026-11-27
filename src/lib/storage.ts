@@ -78,6 +78,21 @@ export class LocalStorage implements StorageProvider {
   }
 }
 
+/**
+ * S3 endpoint of the bucket's account:
+ * - R2_ENDPOINT: any S3-compatible endpoint, used as given (e.g. another provider after a move);
+ * - R2_JURISDICTION: "eu" / "fedramp" for R2 buckets created with a jurisdiction
+ *   (their API lives at <account>.<jurisdiction>.r2.cloudflarestorage.com);
+ * - otherwise the default https://<account>.r2.cloudflarestorage.com.
+ */
+export function r2Endpoint(env: NodeJS.ProcessEnv = process.env): string {
+  const custom = env.R2_ENDPOINT?.trim();
+  if (custom) return custom.replace(/\/+$/, "");
+  const jurisdiction = env.R2_JURISDICTION?.trim().toLowerCase();
+  if (jurisdiction && !/^[a-z]+$/.test(jurisdiction)) throw new Error("R2_JURISDICTION yalnız hərflərdən ibarət olmalıdır (məs. eu)");
+  return `https://${env.R2_ACCOUNT_ID}.${jurisdiction ? `${jurisdiction}.` : ""}r2.cloudflarestorage.com`;
+}
+
 /** Cloudflare R2 through its S3-compatible API (signed with aws4fetch, no AWS SDK). */
 export class R2Storage implements StorageProvider {
   private client: AwsClient;
@@ -89,7 +104,7 @@ export class R2Storage implements StorageProvider {
       service: "s3",
       region: "auto",
     });
-    this.base = `https://${env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com/${env.R2_BUCKET}`;
+    this.base = `${r2Endpoint(env)}/${env.R2_BUCKET}`;
   }
   private url(key: string) {
     assertKey(key);
