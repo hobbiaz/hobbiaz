@@ -413,3 +413,8 @@
 .share-btn:hover{border-color:var(--primary);color:var(--primary);background:var(--primary-container)}
 .share-btn.primary{background:var(--primary);border-color:var(--primary);color:white}
 .share-btn.primary:hover{background:#005141}
+
+/* Product cards: the title and price row had no inner spacing and touched the card edge. */
+.product-card { padding-bottom: 12px; }
+.product-card > .card-title,
+.product-card > .card-price-row { padding: 0 12px; }
