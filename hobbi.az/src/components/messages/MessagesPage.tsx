@@ -256,20 +256,36 @@ export function MessagesPage() {
         </div>
       </Modal>
 
-      <BulkMessageModal open={bulkOpen} convos={convos ?? []} onClose={() => setBulkOpen(false)} onSent={loadConvos} />
+      <BulkMessageModal
+        open={bulkOpen}
+        recipients={(convos ?? []).map((c) => ({ id: c.id, name: c.other?.name ?? "İstifadəçi", avatar: c.other?.avatar, note: c.listing?.title }))}
+        sendOne={(id, body) => api(`/api/conversations/${encodeURIComponent(id)}/messages`, { method: "POST", body: { body } })}
+        onClose={() => setBulkOpen(false)}
+        onSent={loadConvos}
+      />
     </div>
   );
 }
 
+/** Someone you can message in "Toplu mesaj". */
+interface Recipient { id: string; name: string; avatar?: string | null; note?: string }
+
 /** Pen: one message to several people you've already talked to. */
-function BulkMessageModal({ open, convos, onClose, onSent }: { open: boolean; convos: Convo[]; onClose: () => void; onSent: () => void }) {
+function BulkMessageModal({ open, recipients, onClose, sendOne, onSent }: {
+  open: boolean;
+  recipients: Recipient[];
+  onClose: () => void;
+  /** Sends the text to one conversation; throws on failure. */
+  sendOne: (id: string, body: string) => Promise<unknown>;
+  onSent?: () => void;
+}) {
   const { toast } = useUI();
   const [picked, setPicked] = useState<string[]>([]);
   const [text, setText] = useState("");
   const [progress, setProgress] = useState<number | null>(null);
   useEffect(() => { if (!open) { setPicked([]); setText(""); setProgress(null); } }, [open]);
 
-  const all = picked.length === convos.length && convos.length > 0;
+  const all = picked.length === recipients.length && recipients.length > 0;
   const toggle = (id: string) => setPicked((p) => (p.includes(id) ? p.filter((x) => x !== id) : [...p, id]));
   const busy = progress !== null;
 
@@ -280,12 +296,12 @@ function BulkMessageModal({ open, convos, onClose, onSent }: { open: boolean; co
     let okCount = 0;
     for (const [i, id] of picked.entries()) {
       try {
-        await api(`/api/conversations/${encodeURIComponent(id)}/messages`, { method: "POST", body: { body } });
+        await sendOne(id, body);
         okCount++;
       } catch { /* counted below */ }
       setProgress(i + 1);
     }
-    onSent();
+    onSent?.();
     toast(okCount === picked.length ? `Mesaj ${okCount} nəfərə göndərildi ✅` : `${okCount}/${picked.length} nəfərə göndərildi`);
     onClose();
   };
@@ -296,20 +312,20 @@ function BulkMessageModal({ open, convos, onClose, onSent }: { open: boolean; co
       <div className="bulk-box">
         <div className="confirm-title">Toplu mesaj</div>
         <p className="confirm-text">Əvvəl yazışdığınız şəxsləri seçin, mesaj hər birinə ayrıca göndəriləcək.</p>
-        {convos.length === 0 ? (
+        {recipients.length === 0 ? (
           <p className="confirm-text">Hələ heç kimlə yazışmamısınız.</p>
         ) : (
           <>
             <label className="bulk-row bulk-all">
-              <input type="checkbox" checked={all} onChange={() => setPicked(all ? [] : convos.map((c) => c.id))} disabled={busy} />
-              Hamısını seç ({convos.length})
+              <input type="checkbox" checked={all} onChange={() => setPicked(all ? [] : recipients.map((c) => c.id))} disabled={busy} />
+              Hamısını seç ({recipients.length})
             </label>
             <div className="bulk-list">
-              {convos.map((c) => (
+              {recipients.map((c) => (
                 <label key={c.id} className="bulk-row">
                   <input type="checkbox" checked={picked.includes(c.id)} onChange={() => toggle(c.id)} disabled={busy} />
-                  <Avatar name={c.other?.name ?? "?"} src={c.other?.avatar} />
-                  <span className="bulk-name">{c.other?.name ?? "İstifadəçi"}{c.listing ? <small> · {c.listing.title}</small> : null}</span>
+                  <Avatar name={c.name} src={c.avatar} />
+                  <span className="bulk-name">{c.name}{c.note ? <small> · {c.note}</small> : null}</span>
                 </label>
               ))}
             </div>
@@ -324,41 +340,108 @@ function BulkMessageModal({ open, convos, onClose, onSent }: { open: boolean; co
   );
 }
 
-/** Offline demo inbox (no database). */
+/**
+ * Offline demo inbox (no database): same layout as the real one, and you can type and use
+ * "Toplu mesaj" — messages only live on this page until it reloads.
+ */
 function DemoInbox() {
-  const [open, setOpen] = useState<number | null>(null);
-  const c = CONVERSATIONS.find((x) => x.id === open);
+  const isMobile = useIsMobile();
+  const [openId, setOpenId] = useState<number | null>(null);
+  const [sent, setSent] = useState<Record<number, Msg[]>>({});
+  const [draft, setDraft] = useState("");
+  const [bulkOpen, setBulkOpen] = useState(false);
+  const endRef = useRef<HTMLDivElement>(null);
+  const c = CONVERSATIONS.find((x) => x.id === openId);
+
+  useEffect(() => {
+    const open = () => setBulkOpen(true);
+    window.addEventListener(BULK_MESSAGE_EVENT, open);
+    return () => window.removeEventListener(BULK_MESSAGE_EVENT, open);
+  }, []);
+  useEffect(() => { endRef.current?.scrollIntoView({ block: "end" }); }, [sent, openId]);
+
+  const add = (id: number, body: string) =>
+    setSent((m) => ({ ...m, [id]: [...(m[id] ?? []), { id: `${id}-${Date.now()}-${Math.random()}`, body, createdAt: new Date().toISOString(), mine: true }] }));
+  const send = () => {
+    const body = draft.trim();
+    if (!body || openId === null) return;
+    add(openId, body);
+    setDraft("");
+  };
+
+  const thread = c && (
+    <div className="chat-pane">
+      <div className="chat-head">
+        <button className="chat-back" onClick={() => setOpenId(null)} aria-label="Geri">←</button>
+        <div className="convo-avatar-placeholder" style={{ background: c.gradient }}>{c.initial}</div>
+        <div className="convo-name" style={{ flex: 1 }}>{c.name}</div>
+      </div>
+      <div className="chat-messages" aria-live="polite">
+        <div style={{ alignSelf: "flex-start", maxWidth: "78%" }}>
+          <div className="chat-bubble">{c.preview}</div>
+          <div style={{ fontSize: ".7rem", color: "var(--outline)", marginTop: ".15rem" }}>{c.time}</div>
+        </div>
+        {(sent[c.id] ?? []).map((m) => (
+          <div key={m.id} style={{ alignSelf: "flex-end", maxWidth: "78%" }}>
+            <div className="chat-bubble mine">{m.body}</div>
+            <div style={{ fontSize: ".7rem", color: "var(--outline)", textAlign: "right", marginTop: ".15rem" }}>{timeAgo(m.createdAt)}</div>
+          </div>
+        ))}
+        <div ref={endRef} />
+      </div>
+      <form onSubmit={(e) => { e.preventDefault(); send(); }} className="chat-form">
+        <div className="msg-search" style={{ flex: 1, margin: 0 }}>
+          <input type="text" value={draft} onChange={(e) => setDraft(e.target.value)} placeholder="Mesaj yazın..." aria-label="Mesaj" maxLength={2000} />
+        </div>
+        <button type="submit" className="store-cta-btn" disabled={!draft.trim()}>Göndər</button>
+      </form>
+    </div>
+  );
+
+  const inbox = (
+    <div className="inbox-pane">
+      <p style={{ color: "var(--outline)", fontSize: ".8rem", margin: ".25rem 0 .75rem" }}>Demo rejim: server qoşulmayıb, mesajlar göndərilmir.</p>
+      {isMobile && (
+        <div className="inbox-top" style={{ justifyContent: "flex-end" }}>
+          <button type="button" className="msg-pen-btn" onClick={() => setBulkOpen(true)} aria-label="Toplu mesaj göndər"><PenIcon /></button>
+        </div>
+      )}
+      <div className="convo-list">
+        {CONVERSATIONS.map((x) => (
+          <div key={x.id} {...pressable} className={`convo-item${x.unread && !sent[x.id] ? " unread" : ""}${x.id === openId ? " active" : ""}`} onClick={() => setOpenId(x.id)}>
+            <div className="convo-avatar-placeholder" style={{ background: x.gradient }}>{x.initial}</div>
+            <div className="convo-body">
+              <div className="convo-name">{x.name}</div>
+              <div className="convo-preview">{sent[x.id]?.length ? `Siz: ${sent[x.id]!.at(-1)!.body}` : x.preview}</div>
+            </div>
+            <div className="convo-right">
+              <div className="convo-time">{sent[x.id]?.length ? "indi" : x.time}</div>
+              {x.unread && !sent[x.id] && <div className="unread-dot" />}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
   return (
     <div className="page active" id="page-messages">
-      <div className="messages-wrap">
-        <p style={{ textAlign: "center", color: "var(--outline)", fontSize: ".85rem", margin: ".5rem 0 1rem" }}>Demo rejim: server qoşulmayıb</p>
-        {c ? (
-          <div className="chat-pane">
-            <div className="chat-head">
-              <button className="chat-back" style={{ display: "inline-flex" }} onClick={() => setOpen(null)} aria-label="Geri">←</button>
-              <div className="convo-avatar-placeholder" style={{ background: c.gradient }}>{c.initial}</div>
-              <div className="convo-name">{c.name}</div>
-            </div>
-            <div className="chat-messages"><div style={{ alignSelf: "flex-start", maxWidth: "78%" }}><div className="chat-bubble">{c.preview}</div></div></div>
-          </div>
-        ) : (
-          <div className="convo-list">
-            {CONVERSATIONS.map((x) => (
-              <div key={x.id} {...pressable} className={`convo-item${x.unread ? " unread" : ""}`} onClick={() => setOpen(x.id)}>
-                <div className="convo-avatar-placeholder" style={{ background: x.gradient }}>{x.initial}</div>
-                <div className="convo-body">
-                  <div className="convo-name">{x.name}</div>
-                  <div className="convo-preview">{x.preview}</div>
-                </div>
-                <div className="convo-right">
-                  <div className="convo-time">{x.time}</div>
-                  {x.unread && <div className="unread-dot" />}
-                </div>
-              </div>
-            ))}
+      <div className={`messages-wrap messages-layout${c ? " has-chat" : ""}`}>
+        {(!isMobile || !c) && inbox}
+        {thread}
+        {!isMobile && !c && (
+          <div className="chat-pane chat-empty">
+            <div style={{ fontSize: "2.4rem" }} aria-hidden="true">💬</div>
+            <p>Yazışmaq üçün soldan söhbət seçin</p>
           </div>
         )}
       </div>
+      <BulkMessageModal
+        open={bulkOpen}
+        recipients={CONVERSATIONS.map((x) => ({ id: String(x.id), name: x.name }))}
+        sendOne={async (id, body) => add(Number(id), body)}
+        onClose={() => setBulkOpen(false)}
+      />
     </div>
   );
 }
