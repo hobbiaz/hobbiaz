@@ -34,7 +34,7 @@ Kod hazırdır. Aşağıdakı addımlar hesab, ödəniş və DNS tələb edir, o
 2. **REST API** bölməsindən: `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`.
 
 ## 5. Vercel (sayt + API), ~10 dəqiqə
-1. https://vercel.com → GitHub ilə daxil olun → **Add New → Project** → `qurbanovvurgun-dev/hobbi.az` reposunu import edin.
+1. https://vercel.com → GitHub ilə daxil olun → **Add New → Project** → `hobbiaz/hobbiaz` reposunu import edin.
    (Repo başqasının hesabındadırsa, repo sahibi Vercel GitHub App-a icazə verməlidir.)
 2. **Root Directory**: boş saxlayın (tətbiq repo-nun kökündədir).
 3. Framework: Next.js (avtomatik). Build command dəyişməyin: `package.json`-dakı `vercel-build` özü işə düşür (`prisma generate → prisma migrate deploy → next build`), yəni baza cədvəlləri hər deploy-da avtomatik yenilənir.

@@ -5,7 +5,7 @@ texts and API error messages are in Azerbaijani.
 
 ## Repository
 
-- GitHub: `https://github.com/qurbanovvurgun-dev/hobbi.az` (branch `master`; work is pushed straight to `master` unless asked otherwise).
+- GitHub: `https://github.com/hobbiaz/hobbiaz` (moved from qurbanovvurgun-dev/hobbi.az on 2026-11-27) (branch `master`; work is pushed straight to `master` unless asked otherwise).
 - Layout: the Next.js app **is** the repo root (moved up from `hobbi.az/` on 2026-11-27). Run every npm
   command from here. The client's old static site (`hobbi_az_original/`) was removed; it is in the git history.
   - `CLAUDE.md` (this file), `.claude/launch.json` (preview: `hobbi` on port 3000).

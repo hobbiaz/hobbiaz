@@ -57,7 +57,7 @@ Hər addımı bitirəndə `[ ]` işarəsini `[x]` edin. Ətraflı izah: [DEPLOY.
   - `UPSTASH_REDIS_REST_TOKEN`
 
 ### 6. Vercel: sayt (~10 dəq)
-- [ ] vercel.com saytında GitHub ilə daxil olun → **Add New → Project** → `qurbanovvurgun-dev/hobbi.az` reposunu seçin.
+- [ ] vercel.com saytında GitHub ilə daxil olun → **Add New → Project** → `hobbiaz/hobbiaz` reposunu seçin.
   - Repo görünmürsə, repo sahibi Vercel GitHub App-a icazə verməlidir.
 - [ ] **Root Directory** boş qalır: tətbiq repo-nun kökündədir.
 - [ ] **Environment Variables** bölməsinə yuxarıdakı bütün dəyərləri əlavə edin, üstəlik bunları:

@@ -32,7 +32,7 @@ Lazım olan: Ubuntu 22.04/24.04 server (ən azı 2 GB RAM), domen, serverdə Doc
 curl -fsSL https://get.docker.com | sh
 
 # 2. Kod
-git clone https://github.com/qurbanovvurgun-dev/hobbi.az.git /opt/hobbi
+git clone https://github.com/hobbiaz/hobbiaz.git /opt/hobbi
 cd /opt/hobbi
 
 # 3. Ayarlar: faylı açıb doldurun (POSTGRES_PASSWORD, AUTH_SECRET, DOMAIN, APP_ORIGIN, RESEND_…)
