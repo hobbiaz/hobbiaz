@@ -248,31 +248,6 @@
   }
 
   /* ── Desktop Reels layout ── */
-  #page-video {
-    background: var(--surface, #f5f5f5);
-    min-height: 100vh;
-  }
-  #page-video .topnav {
-    display: flex !important;
-    margin-left: var(--sidebar-collapsed);
-    width: calc(100% - var(--sidebar-collapsed));
-    background: var(--surface-nav) !important;
-    backdrop-filter: blur(12px) !important;
-    border-bottom: 1px solid var(--outline-variant, rgba(0,0,0,.08)) !important;
-    box-shadow: none !important;
-  }
-  #page-video .bottom-nav {
-    display: none !important;
-  }
-  #page-video .video-feed {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    min-height: calc(100vh - var(--nav-h));
-    height: calc(100vh - var(--nav-h));
-    padding: 20px 0;
-    scroll-snap-type: y mandatory;
-  }
   .reels-stage {
     display: flex;
     flex-direction: row;
@@ -285,33 +260,6 @@
     padding: 10px 0;
     min-height: calc(100vh - var(--nav-h) - 40px);
   }
-  .reels-nav-arrows {
-    display: flex;
-    flex-direction: column;
-    gap: .75rem;
-    position: absolute;
-    right: calc(50% - 280px);
-    top: 50%;
-    transform: translateY(-50%);
-    z-index: 20;
-  }
-  .reels-arrow-btn {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: rgba(255,255,255,.12);
-    backdrop-filter: blur(8px);
-    border: 1px solid rgba(255,255,255,.15);
-    color: #fff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: background .18s, transform .12s;
-  }
-  .reels-arrow-btn:hover { background: rgba(255,255,255,.22); }
-  .reels-arrow-btn:active { transform: scale(.94); }
-
   .video-frame {
     position: relative;
     width: 450px;
@@ -428,7 +376,6 @@
 }
 
 @media (max-width: 1023px) {
-  .reels-nav-arrows,
   .reels-desktop-sidebar { display: none !important; }
   .reels-stage {
     display: block;
@@ -463,210 +410,131 @@
 }
 
 /* ================================================
-   REELS DESKTOP FIX — yalnız min-width: 901px
-   Mövcud heç bir stili dəyişmir, override edir
+   REELS — computers (≥901px). One block with the final values; it replaces three
+   earlier override layers ("FIX", "v2", the surface override) whose !important
+   rules fought each other. #page-video selectors outrank the generic rules above,
+   so no !important is needed. The floating top bar, the comments panel and the
+   upload modal live in 17-reels.css.
    ================================================ */
 @media (min-width: 901px) {
-
-  /* 1. Video feed: flex sütun, snap scroll, görünən sahə */
-  #page-video .video-feed {
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: center !important;
-    overflow-y: scroll !important;
-    overflow-x: hidden !important;
-    scroll-snap-type: y mandatory !important;
-    scrollbar-width: none !important;
-    -ms-overflow-style: none !important;
-    height: calc(100vh - var(--nav-h, 56px)) !important;
-    padding: 0 !important;
-    gap: 0 !important;
-  }
-
-  #page-video .video-feed::-webkit-scrollbar {
-    display: none !important;
-  }
-
-  /* 2. Hər kart snap nöqtəsi — shrink olmur, tam ekran hündürlüyündə */
-  #page-video .video-card.reels-desktop {
-    flex-shrink: 0 !important;
-    width: 100% !important;
-    height: calc(100vh - var(--nav-h, 56px)) !important;
-    min-height: calc(100vh - var(--nav-h, 56px)) !important;
-    scroll-snap-align: start !important;
-    scroll-snap-stop: always !important;
-    display: flex !important;
-    flex-direction: row !important;
-    align-items: center !important;
-    justify-content: center !important;
-    overflow: hidden !important;
-    background: #0a0a0a !important;
-    position: relative !important;
-  }
-
-  /* 3. reels-stage: kart içindəki 3 sütunlu layout */
-  #page-video .reels-stage {
-    display: flex !important;
-    flex-direction: row !important;
-    align-items: center !important;
-    justify-content: center !important;
-    gap: 1.5rem !important;
-    width: 100% !important;
-    height: 100% !important;
-    min-height: 0 !important;
-    padding: 20px 0 !important;
-    scroll-snap-align: unset !important;
-  }
-
-  /* 4. video-frame: 9:16 nisbəti, sabit ölçü, kənara daşmır */
-  #page-video .video-frame {
-    flex-shrink: 0 !important;
-    width: min(320px, calc((100vh - var(--nav-h, 56px) - 40px) * 9 / 16)) !important;
-    aspect-ratio: 9 / 16 !important;
-    height: auto !important;
-    max-height: calc(100vh - var(--nav-h, 56px) - 40px) !important;
-    max-width: none !important;
-    position: relative !important;
-    overflow: hidden !important;
-    border-radius: 16px !important;
-    background: #111 !important;
-  }
-
-  /* 5. video-bg-art (placeholder): kartı tam doldursun */
-  #page-video .video-frame .video-bg-art {
-    position: absolute !important;
-    inset: 0 !important;
-    width: 100% !important;
-    height: 100% !important;
-    object-fit: cover !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    font-size: 5rem !important;
-  }
-
-  /* 6. video teqi varsa (real video) */
-  #page-video .video-frame video {
-    position: absolute !important;
-    inset: 0 !important;
-    width: 100% !important;
-    height: 100% !important;
-    object-fit: cover !important;
-  }
-
-  /* 7. Alt gradient overlay — kartın içindədir, düzgün yerləşir */
-  #page-video .video-frame .video-gradient {
-    position: absolute !important;
-    inset: auto 0 0 0 !important;
-    height: 60% !important;
-    background: linear-gradient(
-      to top,
-      rgba(0,0,0,.80) 0%,
-      rgba(0,0,0,.30) 50%,
-      transparent 100%
-    ) !important;
-    pointer-events: none !important;
-    z-index: 2 !important;
-    border-radius: 0 !important;
-  }
-
-  /* 8. video-info: kartın sol-alt hissəsinə yapışır */
-  #page-video .video-frame .video-info {
-    position: absolute !important;
-    bottom: 18px !important;
-    left: 14px !important;
-    right: 14px !important;
-    z-index: 5 !important;
-    padding: 0 !important;
-  }
-
-  /* 9. sağ sidebar (desktop): flex sütun, kartdan kənarda */
-  #page-video .reels-stage .reels-desktop-sidebar {
-    flex-shrink: 0 !important;
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: center !important;
-    gap: 1.4rem !important;
-    padding: 8px 0 !important;
-    align-self: flex-end !important;
-    padding-bottom: 30px !important;
-  }
-
-  /* 10. nav arrows: absolute, kartın sağında */
-  #page-video .reels-nav-arrows {
-    position: fixed !important;
-    right: calc(50% - 260px) !important;
-    top: 50% !important;
-    transform: translateY(-50%) !important;
-    z-index: 30 !important;
-  }
-
-}
-
-/* ================================================
-   REELS DESKTOP v2 — topnav gizlə, alt boşluq sıfırla, kart böyüt
-   Yalnız min-width: 901px
-   ================================================ */
-@media (min-width: 901px) {
-
-  /* 1. Reels səhifəsində topnav-ı tamamilə gizlət */
-  body.page-video .topnav,
-  #page-video ~ .topnav,
-  #page-video .topnav {
-    display: none !important;
-  }
-
-  /* 2. video-feed tam viewport hündürlüyünü tutsun (nav olmadığı üçün) */
-  #page-video .video-feed {
-    height: 100vh !important;
-    min-height: 100vh !important;
-    padding: 0 !important;
-    margin-left: var(--sidebar-collapsed, 72px) !important;
-    width: calc(100% - var(--sidebar-collapsed, 72px)) !important;
-  }
-
-  /* 3. Hər kart da tam viewport hündürlüyü */
-  #page-video .video-card.reels-desktop {
-    height: 100vh !important;
-    min-height: 100vh !important;
-  }
-
-  /* 4. reels-stage hündürlüyü tam */
-  #page-video .reels-stage {
-    height: 100vh !important;
-    min-height: 100vh !important;
-    padding: 24px 0 !important;
-  }
-
-  /* 5. Alt ağ çıxıntı — bottom-nav tam gizlə */
-  #page-video ~ .bottom-nav,
-  body.page-video .bottom-nav {
-    display: none !important;
-  }
-
-  /* 6. Kartın altında qalan boş ağ sahəni sıfırla */
   #page-video {
-    padding-bottom: 0 !important;
-    margin-bottom: 0 !important;
-    background: #000 !important;
+    min-height: 100vh;
+    padding-bottom: 0;
+    margin-bottom: 0;
+    background: var(--surface);
   }
 
-  /* 7. Video frame daha böyük — əvvəlki 320px → 380px */
-  #page-video .video-frame {
-    width: min(420px, calc((100vh - 48px) * 9 / 16)) !important;
-    max-height: calc(100vh - 48px) !important;
-  }
-
-}
-@media (min-width: 901px) {
-  #page-video,
-  #page-video .video-card.reels-desktop,
-  #page-video .reels-stage,
+  /* Each video fills the screen and snaps into place; the scrollbar is hidden. */
   #page-video .video-feed {
-    background: var(--surface) !important;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow-x: hidden;
+    overflow-y: scroll;
+    scroll-snap-type: y mandatory;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    width: 100%;
+    height: 100vh;
+    min-height: 100vh;
+    margin-left: 0;
+    padding: 0;
+    gap: 0;
+    background: var(--surface);
+  }
+  #page-video .video-feed::-webkit-scrollbar { display: none; }
+
+  #page-video .video-card.reels-desktop {
+    position: relative;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 100%;
+    height: 100vh;
+    min-height: 100vh;
+    overflow: hidden;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+    background: var(--surface);
   }
 
+  /* Video + action column (+ comments panel), below the top bar. */
+  #page-video .reels-stage {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 1.5rem;
+    box-sizing: border-box;
+    width: 100%;
+    height: 100vh;
+    min-height: 100vh;
+    padding: calc(var(--nav-h) + 16px) 0 16px;
+    scroll-snap-align: unset;
+    background: var(--surface);
+  }
+
+  /* 9:16 frame that always fits the screen height. */
   #page-video .video-frame {
-    background: #111 !important;
+    position: relative;
+    flex-shrink: 0;
+    width: min(420px, calc((100vh - var(--nav-h) - 32px) * 9 / 16));
+    max-width: none;
+    height: auto;
+    max-height: calc(100vh - var(--nav-h) - 32px);
+    aspect-ratio: 9 / 16;
+    overflow: hidden;
+    border-radius: 16px;
+    background: #111;
+    transition: transform .42s cubic-bezier(.25,1,.5,1);
+  }
+  #page-video .video-frame .video-bg-art {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 5rem;
+  }
+  #page-video .video-frame video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  #page-video .video-frame .video-gradient {
+    position: absolute;
+    inset: auto 0 0 0;
+    height: 60%;
+    background: linear-gradient(to top, rgba(0,0,0,.80) 0%, rgba(0,0,0,.30) 50%, transparent 100%);
+    pointer-events: none;
+    z-index: 2;
+    border-radius: 0;
+  }
+  #page-video .video-frame .video-info {
+    position: absolute;
+    bottom: 18px;
+    left: 14px;
+    right: 14px;
+    z-index: 5;
+    padding: 0;
+  }
+
+  /* Action column to the right of the video, aligned to its bottom. */
+  #page-video .reels-stage .reels-desktop-sidebar {
+    flex-shrink: 0;
+    /* !important: the ≤1023px block hides it with !important; 901–1023px keeps showing it */
+    display: flex !important;
+    flex-direction: column;
+    align-items: center;
+    align-self: flex-end;
+    gap: 1.4rem;
+    padding: 8px 0;
   }
 }

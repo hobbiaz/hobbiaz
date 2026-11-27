@@ -15,28 +15,6 @@
   }
   body.reels-page.reels-nav-hidden .topnav { transform: translateY(-110%); }
 
-  /* Each video fills the screen; the frame sits below the top bar, never under it or off-screen. */
-  #page-video .video-feed {
-    height: 100vh !important;
-    min-height: 100vh !important;
-    margin-left: 0 !important;
-    width: 100% !important;
-  }
-  #page-video .video-card.reels-desktop {
-    height: 100vh !important;
-    min-height: 100vh !important;
-  }
-  #page-video .reels-stage {
-    padding: calc(var(--nav-h) + 16px) 0 16px !important;
-    box-sizing: border-box;
-  }
-  #page-video .video-frame {
-    width: min(420px, calc((100vh - var(--nav-h) - 32px) * 9 / 16)) !important;
-    max-height: calc(100vh - var(--nav-h) - 32px) !important;
-    transition: transform .42s cubic-bezier(.25,1,.5,1);
-  }
-  #page-video .reels-stage .reels-desktop-sidebar { padding-bottom: 8px !important; }
-
   /* Comments beside the video: the panel grows from 0 → 380px, so the centred
      video + actions glide to the left; closing reverses it. */
   .reel-comments-panel {
