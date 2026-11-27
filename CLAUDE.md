@@ -69,7 +69,15 @@ Run typecheck, lint and tests before committing. Never edit the database by hand
   feed (category/search in the URL: `?cat=`, `?q=`), product cache, favourites (server when signed in,
   localStorage for guests), notifications polling, modals, product panel (`#producto=<id>` deep link).
 - `src/hooks/useProductActions.ts` — "Maraqlan" (message), "Sifariş et" (order), "Şikayət et" (report).
-- Pages: `/` feed · `/s/[slug]` public store · `/profile` · `/messages` · `/settings` · `/admin` · `/reels` · `/search`.
+- Pages: `/` feed (infinite scroll) · `/s/[slug]` public store · `/profile` · `/messages` · `/settings` · `/admin` · `/reels` · `/search`
+  · `/collections/[id]` (curated slug like `ev-dekoru`, or a user collection) · `/collections/new` (pick 8–20 listings).
+- Collections: curated ones are defined by categories (`COLLECTION_CATEGORIES` in `src/data/content.ts`), user ones live in
+  `Collection`/`CollectionItem` (`src/lib/collections.ts`). Search panel suggestions: recent (localStorage) + `SearchTerm` counts.
+- Reels upload: `POST /api/reels/upload-url` → browser PUTs the file (R2 pre-signed URL, or `/api/reels/upload/<key>` locally)
+  → `POST /api/reels`. Videos are served by `/api/media/<key>` (R2: redirect to a signed URL; local: Range streaming).
+  R2 needs a CORS rule for browser PUTs (DEPLOY.md).
+- Messages: "delete chat" is per user (`ConversationParticipant.hiddenAt`); the filter sheet opens on top of the current overlay
+  (`filterOpen` in UIProvider, separate from `modal`).
 - `prisma/schema.prisma` — User, Store, OtpCode, Category, Listing(+Image), Upload, Favorite, Review, Order,
   Conversation/Participant/Message, Reel*, Report. Category slugs match the UI: `keramika, resm, zergerllik,
   toxuculuq, agac, musiqi, digər`.
@@ -93,4 +101,6 @@ Run typecheck, lint and tests before committing. Never edit the database by hand
 Done: full UI port; real backend (OTP sign-up, stores, listings with photo upload, search, favourites, reviews,
 orders, messages, notifications, reports, admin); production-ready infrastructure code.
 Not live yet: accounts (Neon, Vercel, R2, Resend, Upstash) and the domain — owner's checklist in `hobbi.az/plan.md`.
-Not built yet: SMS OTP, online payment, reels video upload, Russian translations, real-time chat, listing editing, `next/image`.
+Done 2026-11-26: collections (curated + user-made), reels video upload + real feed, photo lightbox, messages split view /
+delete-for-me / bulk message, desktop layout fixes (`.main-wrap` width). Migration `20261126000000_collections_search_hide_chat`.
+Not built yet: SMS OTP, online payment, Russian translations, real-time chat, listing editing, `next/image`.
