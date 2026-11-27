@@ -16,7 +16,9 @@
     "db:deploy": "prisma migrate deploy",
     "db:seed": "tsx prisma/seed.ts",
     "db:local": "node scripts/local-db.mjs",
-    "db:studio": "prisma studio"
+    "db:studio": "prisma studio",
+    "db:backup": "node --env-file-if-exists=.env scripts/db-backup.mjs",
+    "db:restore": "node --env-file-if-exists=.env scripts/db-restore.mjs"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
