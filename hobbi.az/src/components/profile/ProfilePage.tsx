@@ -215,9 +215,9 @@ export function ProfilePage() {
                     </div>
                     <div style={{ display: "flex", gap: ".35rem", flexWrap: "wrap", justifyContent: "flex-end" }}>
                       {p.status === "DRAFT"
-                        ? <button style={smallBtn} onClick={() => setListingStatus(p, "PUBLISHED")}>Dərc et</button>
-                        : <button style={smallBtn} onClick={() => setListingStatus(p, "DRAFT")}>Gizlət</button>}
-                      <button style={{ ...smallBtn, color: "var(--danger-text, #ba1a1a)" }} onClick={() => removeListing(p)}>Sil</button>
+                        ? <button className="profile-small-btn" style={smallBtn} onClick={() => setListingStatus(p, "PUBLISHED")}>Dərc et</button>
+                        : <button className="profile-small-btn" style={smallBtn} onClick={() => setListingStatus(p, "DRAFT")}>Gizlət</button>}
+                      <button className="profile-small-btn" style={{ ...smallBtn, color: "var(--danger-text, #ba1a1a)" }} onClick={() => removeListing(p)}>Sil</button>
                     </div>
                   </div>
                 ))}
@@ -262,11 +262,11 @@ export function ProfilePage() {
                     {o.note && <div style={{ fontSize: ".8rem", marginTop: ".25rem", color: "var(--on-surface-var)" }}>“{o.note}”</div>}
                     <div style={{ display: "flex", gap: ".35rem", marginTop: ".5rem", flexWrap: "wrap" }}>
                       {isSeller && o.status === "PENDING" && <>
-                        <button style={{ ...smallBtn, background: "#2563EB", color: "#fff", border: 0 }} onClick={() => setOrderStatus(o, "ACCEPTED")}>Qəbul et</button>
-                        <button style={smallBtn} onClick={() => setOrderStatus(o, "REJECTED")}>Rədd et</button>
+                        <button className="profile-small-btn" style={{ ...smallBtn, background: "#2563EB", color: "#fff", border: 0 }} onClick={() => setOrderStatus(o, "ACCEPTED")}>Qəbul et</button>
+                        <button className="profile-small-btn" style={smallBtn} onClick={() => setOrderStatus(o, "REJECTED")}>Rədd et</button>
                       </>}
-                      {isSeller && o.status === "ACCEPTED" && <button style={smallBtn} onClick={() => setOrderStatus(o, "COMPLETED")}>Tamamlandı</button>}
-                      {!isSeller && o.status === "PENDING" && <button style={smallBtn} onClick={() => setOrderStatus(o, "CANCELLED")}>Ləğv et</button>}
+                      {isSeller && o.status === "ACCEPTED" && <button className="profile-small-btn" style={smallBtn} onClick={() => setOrderStatus(o, "COMPLETED")}>Tamamlandı</button>}
+                      {!isSeller && o.status === "PENDING" && <button className="profile-small-btn" style={smallBtn} onClick={() => setOrderStatus(o, "CANCELLED")}>Ləğv et</button>}
                     </div>
                   </div>
                 </div>

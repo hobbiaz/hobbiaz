@@ -149,3 +149,11 @@
   [data-theme="auto"] { --profile-btn-bg: transparent; --profile-bio: var(--on-surface-var); --profile-muted: var(--outline); }
 }
 
+/* ── Phones: bigger invisible touch areas for small controls (they look the same) ── */
+@media (max-width: 600px) {
+  .cart-icon, .btn-interest, .filter-tab, .search-btn, .profile-small-btn, .msg-btn, .info-tag { position: relative; }
+  .cart-icon::before { content: ""; position: absolute; inset: -12px; }
+  .btn-interest::before, .search-btn::before, .msg-btn::before, .info-tag::before { content: ""; position: absolute; inset: -8px -4px; }
+  .filter-tab::before { content: ""; position: absolute; inset: -7px -3px; }
+  .profile-small-btn::before { content: ""; position: absolute; inset: -9px -3px; }
+}
