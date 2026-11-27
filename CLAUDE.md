@@ -90,6 +90,13 @@ Run typecheck, lint and tests before committing. Never edit the database by hand
 - Clickable non-button elements get `{...pressable}` from `src/lib/a11y.ts` (put `key` before the spread).
 - New API input → schema in `validators.ts`; new listing fields → also `listing-dto.ts` and the `Product` type.
 - Secrets only in `.env` (local) or Vercel env vars — never in code, commits or chat.
+- Dark theme: every light colour needs a `[data-theme="dark"]` rule **and** the same rule as
+  `[data-theme="auto"]` inside `@media (prefers-color-scheme: dark)`. Never put an `auto` selector outside that
+  media query (it would apply on light systems too). For inline colours use `var(--x, <light colour>)` and set
+  `--x` only in the dark rules, so the light theme stays pixel-identical.
+- Reels on computers (≥901px) are styled by one block at the end of `11-desktop.css`; don't add another
+  override layer with `!important`, edit that block.
+- Never remove a button or feature without asking the owner first ("fix" means fix, not remove).
 
 ## Windows notes
 
