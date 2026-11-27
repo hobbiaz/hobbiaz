@@ -284,6 +284,12 @@ export function ProfilePage() {
 
 /** Offline demo (no database): the prototype's static profile, clearly labelled. */
 function DemoProfile() {
+  const { toast } = useUI();
+  const shareProfile = () => {
+    const url = `${window.location.origin}/profile`;
+    if (navigator.share) navigator.share({ title: "hobbi.az profil", url }).catch(() => {});
+    else void copyText(url).then(() => toast("Profil linki kopyalandı ✅"));
+  };
   return (
     <div className="page active" id="page-profile">
       <div className="profile-page">
@@ -294,6 +300,10 @@ function DemoProfile() {
           </div>
           <div className="profile-name" style={{ fontWeight: "700", fontSize: "1.4rem" }}>Demo profil</div>
           <div className="profile-location" style={{ fontSize: ".83rem", color: "#8c7071", margin: ".2rem 0 .9rem" }}>Server qoşulmayıb: məlumatlar nümunədir</div>
+          <div className="profile-actions" style={{ display: "flex", gap: ".55rem", flexWrap: "wrap", marginBottom: "1rem" }}>
+            <Link href="/settings" style={{ ...btn(true), display: "inline-flex", alignItems: "center", justifyContent: "center", textDecoration: "none" }}>Düzəliş et</Link>
+            <button style={btn(false)} onClick={shareProfile}>Profili paylaş</button>
+          </div>
         </div>
         <div className="products-list" id="profile-products">
           {PROFILE_PRODUCTS.map((p) => (
