@@ -501,3 +501,8 @@
     margin-left: auto; margin-right: auto;
   }
 }
+/* Video search results */
+.reel-results { margin-bottom: 1.5rem; }
+.reel-results-clear { background: none; border: none; color: var(--primary); font-weight: 600; font-size: .85rem; cursor: pointer; font-family: inherit; }
+.reel-results-empty { color: var(--outline); text-align: center; padding: 1.5rem 0; }
+.reel-result video.ibg { object-fit: cover; background: #000; display: block; }

@@ -12,9 +12,18 @@ const reelInclude = (meId?: string) => ({
   likes: meId ? { where: { userId: meId }, select: { userId: true } } : false,
 }) as const;
 
-export const GET = route(async () => {
+/** GET /api/reels[?q=text] — newest videos; `q` searches the title and the author / store name. */
+export const GET = route(async (req) => {
   const me = await getCurrentUser();
-  const reels = await db.reel.findMany({ orderBy: { createdAt: "desc" }, take: 30, include: reelInclude(me?.id) });
+  const q = new URL(req.url).searchParams.get("q")?.trim().slice(0, 80);
+  const where = q
+    ? { OR: [
+        { title: { contains: q, mode: "insensitive" as const } },
+        { owner: { name: { contains: q, mode: "insensitive" as const } } },
+        { owner: { store: { name: { contains: q, mode: "insensitive" as const } } } },
+      ] }
+    : {};
+  const reels = await db.reel.findMany({ where, orderBy: { createdAt: "desc" }, take: q ? 60 : 30, include: reelInclude(me?.id) });
   return ok(reels.map(({ likes, ...r }) => ({ ...r, likedByMe: Array.isArray(likes) && likes.length > 0 })));
 });
 

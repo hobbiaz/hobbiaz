@@ -116,5 +116,5 @@ export const COLLECTION_TO_CATEGORY: Record<SearchCollection["slug"], CategorySl
   "deb-aksesuar": "zergerllik",
 };
 
-/** Default suggestion buttons under the search field (after recent / most searched texts). */
-export const SEARCH_SUGGESTIONS = ["Keramika vaza", "Gümüş sırğa", "Xalça", "Akvarel rəsm", "Ağac oyuncaq", "Əl işi çanta"];
+/** Default suggestion buttons under the video search field ("Nə axtarırsınız?"), after recent searches. */
+export const REEL_SEARCH_SUGGESTIONS = ["Keramika", "Toxuculuq", "Zərgərlik", "Ağac oyma", "Rəsm", "Makrame"];

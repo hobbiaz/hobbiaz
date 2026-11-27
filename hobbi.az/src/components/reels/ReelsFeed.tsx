@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import { REELS } from "@/data/content";
 import { useIsMobile } from "@/hooks/useMediaQuery";
 import { api } from "@/lib/api-client";
+import { toReel, type ApiReel } from "@/lib/reels-client";
 import { REEL_CREATED_EVENT } from "@/lib/events";
 import { readStorage, writeStorage } from "@/lib/storage-client";
 import { useUI } from "@/providers/UIProvider";
@@ -17,38 +18,6 @@ const BURST_MS = 480;
 /** Matches the CSS transition of the desktop comments panel. */
 const PANEL_MS = 420;
 const ratingKey = (id: string) => `rating_${id}`;
-
-interface ApiReel {
-  id: string;
-  title: string;
-  videoUrl: string;
-  createdAt: string;
-  owner: { id: string; name: string; phone: string | null; city: string | null; store: { name: string; slug: string; region: string; phone: string | null; avatarUrl: string | null } | null };
-  _count: { likes: number; comments: number };
-}
-
-const GRADIENTS = ["linear-gradient(135deg,#1a4a40,#006b58,#0a8a6d)", "linear-gradient(135deg,#2d3a4a,#3d5a6a,#4a7a8a)", "linear-gradient(135deg,#4a2d3a,#6a3d5a,#8a4a7a)"];
-
-function toReel(r: ApiReel, i: number): Reel {
-  const name = r.owner.store?.name ?? r.owner.name;
-  return {
-    id: r.id,
-    live: true,
-    creator: name.replace(/\s+/g, "_"),
-    creatorAvatar: name[0]?.toUpperCase() ?? "?",
-    isSeller: Boolean(r.owner.store),
-    caption: r.title,
-    address: r.owner.store?.region ?? r.owner.city ?? "Azərbaycan",
-    phone: r.owner.store?.phone ?? r.owner.phone ?? "",
-    ratingCount: r._count.likes,
-    commentCount: r._count.comments,
-    shareCount: 0,
-    gradient: GRADIENTS[i % GRADIENTS.length]!,
-    emoji: "🎬",
-    title: r.title,
-    video: r.videoUrl,
-  };
-}
 
 export function ReelsFeed() {
   const isMobile = useIsMobile();
@@ -75,6 +44,13 @@ export function ReelsFeed() {
       .catch(() => setReels(REELS));
   }, [backend]);
   useEffect(() => { load(); }, [load]);
+  // /reels?r=<id> (from a search result) starts at that video.
+  useEffect(() => {
+    const id = new URLSearchParams(window.location.search).get("r");
+    if (!id || !reels.length) return;
+    const el = feedRef.current?.querySelector<HTMLElement>(`[data-video-id="${CSS.escape(id)}"]`);
+    if (el && feedRef.current) feedRef.current.scrollTo({ top: el.offsetTop });
+  }, [reels]);
   useEffect(() => {
     const onCreated = () => { load(); feedRef.current?.scrollTo({ top: 0 }); };
     window.addEventListener(REEL_CREATED_EVENT, onCreated);
