@@ -13,6 +13,7 @@ Dizayn `legacy/hobbi_az_ESAS_BUDUR_SİLME_.html`-dən React komponentlərinə k�
 - şikayətlər və admin paneli.
 
 **Canlıya çıxarmaq:** [DEPLOY.md](DEPLOY.md) (Neon, Vercel, Cloudflare R2, Resend, Upstash, domen).
+**Öz serverə (Docker) və bir hostinqdən digərinə köçürmək, bazanın ehtiyat nüsxəsi:** [HOSTING.md](HOSTING.md).
 
 ## Lokal işə salmaq
 
@@ -35,6 +36,7 @@ npm run dev
 
 - **Neon ilə:** lokal baza əvəzinə `.env`-ə Neon `dev` branch-ın string-lərini yazın. `db:local`-a ehtiyac qalmır.
 - **Məlumatlara baxmaq:** `npm run db:studio` bazanı brauzerdə açır.
+- **Ehtiyat nüsxə / bərpa:** `npm run db:backup` → `backups/` qovluğuna fayl; `npm run db:restore -- <fayl>` geri yükləyir (HOSTING.md, C bölməsi).
 - **API smoke test:** dev server və seed edilmiş baza işləyərkən `npm run test:smoke` təxminən 50 yoxlama aparır.
 
 **Development-də OTP:** `RESEND_API_KEY` yoxdursa, təsdiq kodu e-poçta getmir. Kod ekranda "Test rejimi: kod 123456" kimi və server konsolunda görünür.

@@ -21,7 +21,7 @@
 
 ## A. Sizin addımlarınız: saytı canlıya çıxarmaq
 
-Hər addımı bitirəndə `[ ]` işarəsini `[x]` edin. Ətraflı izah: [DEPLOY.md](DEPLOY.md).
+Hər addımı bitirəndə `[ ]` işarəsini `[x]` edin. Ətraflı izah: [DEPLOY.md](DEPLOY.md). Gələcəkdə öz serverə / başqa hostinqə köçmək: [HOSTING.md](HOSTING.md).
 
 ### 1. Domen
 - [ ] `hobbi.az` domeni sizdədirsə, onu hansı şirkətin panelindən idarə etdiyinizi tapın (DNS qeydləri orada yazılacaq).
@@ -132,6 +132,12 @@ npm run db:local     # lokal PostgreSQL (ayrı terminalda açıq saxlayın)
 ```
 ```powershell
 npm run db:studio    # bazaya brauzerdə baxmaq
+```
+```powershell
+npm run db:backup    # bazanın ehtiyat nüsxəsi → backups\ (pg_dump lazımdır, HOSTING.md)
+```
+```powershell
+npm run db:restore -- backups\<fayl>.dump   # nüsxəni geri yükləmək
 ```
 ```powershell
 npm run test:smoke   # API axınının tam yoxlanışı (dev server açıq olmalıdır)

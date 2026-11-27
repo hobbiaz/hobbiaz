@@ -1,0 +1,6 @@
+# Used by the "caddy" service in docker-compose.yml (profile "https").
+# Caddy gets and renews the HTTPS certificate for DOMAIN by itself.
+{$DOMAIN}, www.{$DOMAIN} {
+	encode zstd gzip
+	reverse_proxy app:3000
+}

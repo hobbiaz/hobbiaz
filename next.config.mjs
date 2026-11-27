@@ -10,6 +10,11 @@ const securityHeaders = [
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Docker / own server: `NEXT_OUTPUT=standalone next build` makes a self-contained server
+  // (.next/standalone/server.js). Vercel builds without it.
+  output: process.env.NEXT_OUTPUT === "standalone" ? "standalone" : undefined,
+  // Make sure the Prisma query engine is copied into the standalone server (Docker image).
+  outputFileTracingIncludes: { "/**/*": ["./node_modules/.prisma/client/**/*"] },
   reactStrictMode: true,
   poweredByHeader: false,
   async headers() {

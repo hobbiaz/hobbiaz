@@ -15,7 +15,9 @@ texts and API error messages are in Azerbaijani.
 
 Next.js 15 (App Router) · React 19 · strict TypeScript · Prisma 6 + PostgreSQL · Zod · jose (JWT
 session cookie) · bcryptjs · Vitest. Production target: Vercel + Neon + Cloudflare R2 (images) +
-Resend (e-mail) + Upstash Redis (rate limits). External services are called with plain `fetch`
+Resend (e-mail) + Upstash Redis (rate limits). Kept host-portable: the same code also runs on any server via
+`Dockerfile` + `docker-compose.yml` (PostgreSQL 18, migrate job, app, optional Caddy HTTPS); guide in `HOSTING.md`.
+Only standard PostgreSQL features; schema changes only through migrations. External services are called with plain `fetch`
 (R2 via the tiny `aws4fetch`) — no heavy SDKs.
 
 ## Local setup
@@ -50,6 +52,7 @@ Without `RESEND_API_KEY` the OTP code is not e-mailed: in development it appears
 | `npm run db:local` | embedded local PostgreSQL |
 | `npm run db:migrate -- --name <name>` | create a migration after editing `prisma/schema.prisma` |
 | `npm run db:deploy` / `db:seed` / `db:studio` | apply migrations / seed / browse data |
+| `npm run db:backup` / `db:restore -- <file>` | pg_dump / pg_restore of the DB in `.env` (needs PostgreSQL client tools ≥ server version) |
 
 Run typecheck, lint and tests before committing. Never edit the database by hand — always a migration.
 

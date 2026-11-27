@@ -1,0 +1,79 @@
+# hobbi.az on your own server: PostgreSQL 18 + migrations + the app (+ optional HTTPS via Caddy).
+#
+#   cp .env.production.example .env.production   # fill it in
+#   docker compose --env-file .env.production up -d --build
+#   docker compose --env-file .env.production --profile https up -d --build   # with automatic HTTPS
+#
+# Full guide, backups and moving between hosts: HOSTING.md
+
+# Fixed project name → volumes are always hobbi_pgdata / hobbi_uploads, whatever the folder is called.
+name: hobbi
+
+services:
+  db:
+    image: postgres:18
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: hobbi
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env.production}
+      POSTGRES_DB: hobbi_az
+    volumes:
+      # PostgreSQL 18 images keep their data under /var/lib/postgresql/18/...
+      - pgdata:/var/lib/postgresql
+      - ./backups:/backups
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hobbi -d hobbi_az"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  # Runs `prisma migrate deploy` once, then exits; the app starts only if it succeeded.
+  migrate:
+    build: { context: ., target: migrate }
+    env_file: .env.production
+    environment: &db-urls
+      DATABASE_URL: postgresql://hobbi:${POSTGRES_PASSWORD}@db:5432/hobbi_az
+      DIRECT_URL: postgresql://hobbi:${POSTGRES_PASSWORD}@db:5432/hobbi_az
+    depends_on:
+      db: { condition: service_healthy }
+    restart: "no"
+
+  app:
+    build:
+      context: .
+      target: runner
+      args:
+        NEXT_PUBLIC_SUPPORT_EMAIL: ${NEXT_PUBLIC_SUPPORT_EMAIL:-destek@hobbi.az}
+    restart: unless-stopped
+    env_file: .env.production
+    environment:
+      <<: *db-urls
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+    ports:
+      # Only reachable from this machine; Caddy (or your hosting's proxy) serves it to the internet.
+      - "127.0.0.1:3000:3000"
+    volumes:
+      # Photos and videos when R2 is not configured (R2_* empty).
+      - uploads:/app/uploads
+
+  # Optional: HTTPS with automatic Let's Encrypt certificates (needs DOMAIN pointing at this server).
+  caddy:
+    image: caddy:2
+    profiles: ["https"]
+    restart: unless-stopped
+    environment:
+      DOMAIN: ${DOMAIN:?set DOMAIN in .env.production}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+    depends_on:
+      - app
+
+volumes:
+  pgdata:
+  uploads:
+  caddy_data:

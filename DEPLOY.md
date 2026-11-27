@@ -1,9 +1,11 @@
 # hobbi.az: canlıya çıxarmaq (Neon + Vercel + R2 + Resend + Upstash)
 
+> Öz serverdə (Docker) işlətmək və ya sonradan başqa hostinqə köçmək üçün: [HOSTING.md](HOSTING.md).
+
 Kod hazırdır. Aşağıdakı addımlar hesab, ödəniş və DNS tələb edir, ona görə onları sahib özü edir. Hər addımın sonunda **hansı dəyəri haraya yazacağınız** göstərilib. Açarları heç vaxt git-ə və çata yazmayın: yalnız Vercel → *Settings → Environment Variables* bölməsinə və lokal `.env` faylına.
 
 ## 1. Neon (PostgreSQL), ~5 dəqiqə
-1. https://neon.tech → GitHub ilə daxil olun → **New project**: ad `hobbi-az`, region **AWS Europe Central (Frankfurt)**, Postgres 17.
+1. https://neon.tech → GitHub ilə daxil olun → **New project**: ad `hobbi-az`, region **AWS Europe Central (Frankfurt)**, Postgres 18 (lokal baza ilə eyni versiya; ehtiyat nüsxələr yalnız eyni və ya daha yeni versiyaya bərpa olunur).
 2. **Connection details** bölməsində iki string götürün:
    - **Pooled connection** (hostda `-pooler` var) → `DATABASE_URL`
    - **Direct connection** → `DIRECT_URL`
