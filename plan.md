@@ -59,7 +59,7 @@ Hər addımı bitirəndə `[ ]` işarəsini `[x]` edin. Ətraflı izah: [DEPLOY.
 ### 6. Vercel: sayt (~10 dəq)
 - [ ] vercel.com saytında GitHub ilə daxil olun → **Add New → Project** → `qurbanovvurgun-dev/hobbi.az` reposunu seçin.
   - Repo görünmürsə, repo sahibi Vercel GitHub App-a icazə verməlidir.
-- [ ] **Root Directory** = `hobbi.az`. Bu vacibdir, çünki repoda iki qovluq var.
+- [ ] **Root Directory** boş qalır: tətbiq repo-nun kökündədir.
 - [ ] **Environment Variables** bölməsinə yuxarıdakı bütün dəyərləri əlavə edin, üstəlik bunları:
   - `AUTH_SECRET`: bu əmrin çıxışı:
     ```powershell
@@ -137,4 +137,4 @@ npm run db:studio    # bazaya brauzerdə baxmaq
 npm run test:smoke   # API axınının tam yoxlanışı (dev server açıq olmalıdır)
 ```
 
-Bütün əmrlər `hobbi.az` (tətbiq) qovluğundan işlədilir. Layihə haqqında texniki məlumat: repo kökündəki `CLAUDE.md`.
+Bütün əmrlər repo-nun kök qovluğundan işlədilir (`C:\Users\Feyruz Alizada\Desktop\hobbi.az`). Layihə haqqında texniki məlumat: `CLAUDE.md`.

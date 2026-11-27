@@ -34,7 +34,7 @@ Kod hazırdır. Aşağıdakı addımlar hesab, ödəniş və DNS tələb edir, o
 ## 5. Vercel (sayt + API), ~10 dəqiqə
 1. https://vercel.com → GitHub ilə daxil olun → **Add New → Project** → `qurbanovvurgun-dev/hobbi.az` reposunu import edin.
    (Repo başqasının hesabındadırsa, repo sahibi Vercel GitHub App-a icazə verməlidir.)
-2. **Root Directory**: `hobbi.az` (vacibdir: repoda iki qovluq var).
+2. **Root Directory**: boş saxlayın (tətbiq repo-nun kökündədir).
 3. Framework: Next.js (avtomatik). Build command dəyişməyin: `package.json`-dakı `vercel-build` özü işə düşür (`prisma generate → prisma migrate deploy → next build`), yəni baza cədvəlləri hər deploy-da avtomatik yenilənir.
 4. **Environment Variables** (Production + Preview):
 

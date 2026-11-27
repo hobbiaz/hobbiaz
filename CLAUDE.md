@@ -6,11 +6,10 @@ texts and API error messages are in Azerbaijani.
 ## Repository
 
 - GitHub: `https://github.com/qurbanovvurgun-dev/hobbi.az` (branch `master`; work is pushed straight to `master` unless asked otherwise).
-- Layout (this folder is the repo root):
-  - `hobbi.az/` — **the app** (Next.js). Run every npm command from here.
-  - `hobbi_az_original/` — the client's original static site. **Never modify it.**
+- Layout: the Next.js app **is** the repo root (moved up from `hobbi.az/` on 2026-11-27). Run every npm
+  command from here. The client's old static site (`hobbi_az_original/`) was removed; it is in the git history.
   - `CLAUDE.md` (this file), `.claude/launch.json` (preview: `hobbi` on port 3000).
-- Plan / checklist for going live: `hobbi.az/plan.md`. Deployment guide: `hobbi.az/DEPLOY.md`.
+- Plan / checklist for going live: `plan.md`. Deployment guide: `DEPLOY.md`.
 
 ## Stack
 
@@ -22,7 +21,6 @@ Resend (e-mail) + Upstash Redis (rate limits). External services are called with
 ## Local setup
 
 ```powershell
-cd hobbi.az
 npm install                 # also runs prisma generate
 npm run db:local            # terminal 1: local PostgreSQL on :5433 (data in .local-db/, keep running)
 npm run db:deploy           # terminal 2: apply migrations
@@ -41,7 +39,7 @@ Local accounts after seeding (passwords from `.env`):
 Without `RESEND_API_KEY` the OTP code is not e-mailed: in development it appears in the UI toast
 ("Test rejimi: kod 123456") and in the server console. In production sign-up fails instead (by design).
 
-## Commands (from `hobbi.az/`)
+## Commands
 
 | Command | Purpose |
 |---|---|
@@ -84,7 +82,7 @@ Run typecheck, lint and tests before committing. Never edit the database by hand
 
 ## Conventions
 
-- The design is a port of `hobbi.az/legacy/hobbi_az_ESAS_BUDUR_SİLME_.html`: CSS lives in `src/styles/` with the
+- The design is a port of `legacy/hobbi_az_ESAS_BUDUR_SİLME_.html`: CSS lives in `src/styles/` with the
   **original class names** — reuse them instead of inventing new styles. Icons: `src/components/icons/index.tsx`.
 - Product ids are strings (DB cuid); offline demo products use `demo-N`.
 - Clickable non-button elements get `{...pressable}` from `src/lib/a11y.ts` (put `key` before the spread).
@@ -107,7 +105,7 @@ Run typecheck, lint and tests before committing. Never edit the database by hand
 
 Done: full UI port; real backend (OTP sign-up, stores, listings with photo upload, search, favourites, reviews,
 orders, messages, notifications, reports, admin); production-ready infrastructure code.
-Not live yet: accounts (Neon, Vercel, R2, Resend, Upstash) and the domain — owner's checklist in `hobbi.az/plan.md`.
+Not live yet: accounts (Neon, Vercel, R2, Resend, Upstash) and the domain — owner's checklist in `plan.md`.
 Done 2026-11-26: collections (curated + user-made), reels video upload + real feed, photo lightbox, messages split view /
 delete-for-me / bulk message, desktop layout fixes (`.main-wrap` width). Migration `20261126000000_collections_search_hide_chat`.
 Not built yet: SMS OTP, online payment, Russian translations, real-time chat, listing editing, `next/image`.

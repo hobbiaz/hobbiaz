@@ -4,7 +4,7 @@
     {
       "name": "hobbi",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["--prefix", "hobbi.az", "run", "dev", "--", "-p", "3000"],
+      "runtimeArgs": ["run", "dev", "--", "-p", "3000"],
       "port": 3000
     }
   ]
