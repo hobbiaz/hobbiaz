@@ -12,7 +12,8 @@ export function demoCollection(id: string): CollectionDetail | null {
   const c = SEARCH_COLLECTIONS.find((x) => x.slug === id);
   if (!c) return null;
   const items = PRODUCTS.filter((p) => COLLECTION_CATEGORIES[c.slug].includes(p.cat));
-  return { id: c.slug, title: c.desktopTitle, curated: true, trending: c.trending, count: items.length, images: items.slice(0, 4).map((p) => p.photo), items };
+  const images = items.map((p) => p.photo).filter(Boolean).slice(0, 4);
+  return { id: c.slug, title: c.desktopTitle, curated: true, trending: c.trending, count: items.length, images, items };
 }
 
 /** Collections for the search panel; reloads every time `active` turns true (the panel opens). */

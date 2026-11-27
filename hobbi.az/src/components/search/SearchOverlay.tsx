@@ -14,14 +14,18 @@ import { timeAgo } from "@/lib/api-client";
 const metaOf = (c: CollectionSummary) =>
   [`${c.count} əşya`, c.ownerName, c.updatedAt ? timeAgo(c.updatedAt) : ""].filter(Boolean).join(" • ");
 
-/** 2×2 collage from the first 4 product photos; empty cells get a soft placeholder. */
+/**
+ * Collage from the first 4 product photos. With fewer photos the cells grow to fill the
+ * square (1 = whole, 2 = halves, 3 = one tall + two) instead of leaving grey gaps.
+ */
 function Collage({ c, cellClass }: { c: CollectionSummary; cellClass: string }) {
-  const cells = [0, 1, 2, 3].map((i) => c.images[i] ?? "");
+  const photos = c.images.filter(Boolean).slice(0, 4);
+  if (!photos.length) return <div className={`${cellClass} search-collage-empty collage-span-all`} aria-hidden="true" />;
   return (
     <>
-      {cells.map((src, i) => (
-        <div className={cellClass} key={i} style={src ? undefined : { background: "#F3F4F6" }}>
-          {src ? <img src={src} alt={`${c.title} ${i + 1}`} loading="lazy" /> : null}
+      {photos.map((src, i) => (
+        <div className={`${cellClass} collage-n${photos.length}-${i}`} key={src + i}>
+          <img src={src} alt={`${c.title} ${i + 1}`} loading="lazy" />
         </div>
       ))}
     </>
@@ -105,7 +109,8 @@ export function SearchOverlay() {
     router.push("/collections/new");
   };
   const inputHandlers = {
-    onFocus: (e: React.FocusEvent<HTMLInputElement>) => setSuggestOpen(!e.currentTarget.value),
+    // Not on focus: the field is auto-focused when the panel opens, and the list would cover the page.
+    onClick: (e: React.MouseEvent<HTMLInputElement>) => setSuggestOpen(!e.currentTarget.value),
     onBlur: () => setSuggestOpen(false),
     onInput: (e: React.FormEvent<HTMLInputElement>) => setSuggestOpen(!e.currentTarget.value),
   };

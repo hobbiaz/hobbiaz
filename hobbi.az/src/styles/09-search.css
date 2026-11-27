@@ -506,3 +506,60 @@
 .reel-results-clear { background: none; border: none; color: var(--primary); font-weight: 600; font-size: .85rem; cursor: pointer; font-family: inherit; }
 .reel-results-empty { color: var(--outline); text-align: center; padding: 1.5rem 0; }
 .reel-result video.ibg { object-fit: cover; background: #000; display: block; }
+
+/* ── Search panel + search page: dark theme (the panel used fixed light colours) ── */
+[data-theme="dark"] #search-overlay-mobile, [data-theme="dark"] #search-panel-desktop, [data-theme="dark"] .som-header, [data-theme="dark"] .spd-navbar { background: var(--surface); }
+[data-theme="dark"] .som-header, [data-theme="dark"] .spd-navbar { border-bottom-color: var(--outline-var); }
+[data-theme="dark"] #search-panel-desktop { box-shadow: 0 8px 40px rgba(0,0,0,.5); }
+[data-theme="dark"] .som-search-box, [data-theme="dark"] .spd-search-wrap { background: var(--surface-low); }
+[data-theme="dark"] .som-search-box input, [data-theme="dark"] .spd-search-wrap input { color: var(--on-surface); }
+[data-theme="dark"] .som-search-box input::placeholder, [data-theme="dark"] .spd-search-wrap input::placeholder { color: var(--outline); }
+[data-theme="dark"] .som-divider, [data-theme="dark"] .spd-divider { background: var(--outline-var); }
+[data-theme="dark"] .spd-title, [data-theme="dark"] .spd-promo-title, [data-theme="dark"] .som-card-title { color: var(--on-surface); }
+[data-theme="dark"] .spd-subtitle, [data-theme="dark"] .spd-folder-meta, [data-theme="dark"] .som-card-meta, [data-theme="dark"] .spd-promo-desc, [data-theme="dark"] .spd-footer-copy { color: var(--on-surface-var); }
+[data-theme="dark"] .spd-collage, [data-theme="dark"] .som-collage { background: var(--surface-low); }
+[data-theme="dark"] .search-collage-empty { background: var(--surface-low) !important; }
+[data-theme="dark"] .spd-promo, [data-theme="dark"] .spd-footer { background: var(--primary-container); border-color: var(--outline-var); }
+[data-theme="dark"] .spd-promo-badge, [data-theme="dark"] .spd-social-btn { background: var(--surface-low); border-color: var(--outline-var); }
+[data-theme="dark"] .spd-footer-links a { color: var(--on-surface-var); }
+[data-theme="dark"] .spd-icon-btn:hover, [data-theme="dark"] .search-filter-btn:hover, [data-theme="dark"] .search-suggest-item:hover { background: var(--surface-low); }
+[data-theme="dark"] .search-filter-btn svg, [data-theme="dark"] .som-search-icons svg, [data-theme="dark"] .spd-search-wrap > svg { color: var(--on-surface-var); }
+[data-theme="dark"] .search-suggest { background: var(--surface-card, #1e1e1e); border-color: var(--outline-var); box-shadow: 0 12px 32px rgba(0,0,0,.5); }
+[data-theme="dark"] .search-suggest-head { color: var(--on-surface-var); }
+[data-theme="dark"] .search-suggest-item { color: var(--on-surface); }
+[data-theme="dark"] .search-suggest-chip:hover { background: var(--primary-container); }
+@media (prefers-color-scheme: dark) {
+  [data-theme="auto"] #search-overlay-mobile, [data-theme="auto"] #search-panel-desktop, [data-theme="auto"] .som-header, [data-theme="auto"] .spd-navbar { background: var(--surface); }
+  [data-theme="auto"] .som-header, [data-theme="auto"] .spd-navbar { border-bottom-color: var(--outline-var); }
+  [data-theme="auto"] #search-panel-desktop { box-shadow: 0 8px 40px rgba(0,0,0,.5); }
+  [data-theme="auto"] .som-search-box, [data-theme="auto"] .spd-search-wrap { background: var(--surface-low); }
+  [data-theme="auto"] .som-search-box input, [data-theme="auto"] .spd-search-wrap input { color: var(--on-surface); }
+  [data-theme="auto"] .som-search-box input::placeholder, [data-theme="auto"] .spd-search-wrap input::placeholder { color: var(--outline); }
+  [data-theme="auto"] .som-divider, [data-theme="auto"] .spd-divider { background: var(--outline-var); }
+  [data-theme="auto"] .spd-title, [data-theme="auto"] .spd-promo-title, [data-theme="auto"] .som-card-title { color: var(--on-surface); }
+  [data-theme="auto"] .spd-subtitle, [data-theme="auto"] .spd-folder-meta, [data-theme="auto"] .som-card-meta, [data-theme="auto"] .spd-promo-desc, [data-theme="auto"] .spd-footer-copy { color: var(--on-surface-var); }
+  [data-theme="auto"] .spd-collage, [data-theme="auto"] .som-collage { background: var(--surface-low); }
+  [data-theme="auto"] .search-collage-empty { background: var(--surface-low) !important; }
+  [data-theme="auto"] .spd-promo, [data-theme="auto"] .spd-footer { background: var(--primary-container); border-color: var(--outline-var); }
+  [data-theme="auto"] .spd-promo-badge, [data-theme="auto"] .spd-social-btn { background: var(--surface-low); border-color: var(--outline-var); }
+  [data-theme="auto"] .spd-footer-links a { color: var(--on-surface-var); }
+  [data-theme="auto"] .spd-icon-btn:hover, [data-theme="auto"] .search-filter-btn:hover, [data-theme="auto"] .search-suggest-item:hover { background: var(--surface-low); }
+  [data-theme="auto"] .search-filter-btn svg, [data-theme="auto"] .som-search-icons svg, [data-theme="auto"] .spd-search-wrap > svg { color: var(--on-surface-var); }
+  [data-theme="auto"] .search-suggest { background: var(--surface-card, #1e1e1e); border-color: var(--outline-var); box-shadow: 0 12px 32px rgba(0,0,0,.5); }
+  [data-theme="auto"] .search-suggest-head { color: var(--on-surface-var); }
+  [data-theme="auto"] .search-suggest-item { color: var(--on-surface); }
+  [data-theme="auto"] .search-suggest-chip:hover { background: var(--primary-container); }
+}
+
+/* Collage with fewer than 4 photos: cells grow instead of leaving empty squares */
+.search-collage-empty { background: #F3F4F6; }
+.collage-span-all, .collage-n1-0 { grid-column: 1 / 3; grid-row: 1 / 3; }
+.collage-n2-0 { grid-column: 1; grid-row: 1 / 3; }
+.collage-n2-1 { grid-column: 2; grid-row: 1 / 3; }
+.collage-n3-0 { grid-column: 1; grid-row: 1 / 3; }
+[data-theme="dark"] :is(#search-panel-desktop, #search-overlay-mobile) :is([stroke="#574140"], [stroke="#1E1E1E"]) { stroke: var(--on-surface-var); }
+[data-theme="dark"] #search-overlay-mobile [fill="#1C1B1B"] { fill: var(--on-surface); }
+@media (prefers-color-scheme: dark) {
+  [data-theme="auto"] :is(#search-panel-desktop, #search-overlay-mobile) :is([stroke="#574140"], [stroke="#1E1E1E"]) { stroke: var(--on-surface-var); }
+  [data-theme="auto"] #search-overlay-mobile [fill="#1C1B1B"] { fill: var(--on-surface); }
+}
