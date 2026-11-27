@@ -76,7 +76,7 @@
 .inbox-top { display: flex; align-items: center; gap: .5rem; }
 .inbox-top .msg-search { flex: 1; }
 .msg-pen-btn {
-  width: 42px; height: 42px; border-radius: 50%; border: none; background: #f0f1f3; color: var(--on-surface);
+  width: 42px; height: 42px; border-radius: 50%; border: none; background: var(--surface-low, #f0f1f3); color: var(--on-surface);
   display: inline-flex; align-items: center; justify-content: center; cursor: pointer; margin-bottom: .9rem; flex-shrink: 0;
 }
 .convo-item { position: relative; }
@@ -142,3 +142,10 @@
 @media (max-width: 600px) {
   .profile-actions > * { flex: 1 1 0; min-width: 0; }
 }
+
+/* Dark theme values for colours that are set inline on the profile page (light keeps its fallbacks). */
+[data-theme="dark"] { --profile-btn-bg: transparent; --profile-bio: var(--on-surface-var); --profile-muted: var(--outline); }
+@media (prefers-color-scheme: dark) {
+  [data-theme="auto"] { --profile-btn-bg: transparent; --profile-bio: var(--on-surface-var); --profile-muted: var(--outline); }
+}
+

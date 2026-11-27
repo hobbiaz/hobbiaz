@@ -36,7 +36,7 @@ const STATUS_COLOR: Record<Order["status"], string> = {
 const LISTING_STATUS: Record<string, string> = { DRAFT: "Qaralama", PUBLISHED: "Dərc olunub", REMOVED: "Silinib" };
 
 const btn = (primary: boolean): React.CSSProperties => ({
-  height: "42px", background: primary ? "#2563EB" : "#fff", color: primary ? "#fff" : "#3E91C4",
+  height: "42px", background: primary ? "#2563EB" : "var(--profile-btn-bg, #fff)", color: primary ? "#fff" : "#3E91C4",
   border: primary ? "none" : "1.5px solid #3E91C4", borderRadius: "11px", padding: "0 1.4rem",
   fontFamily: "'Manrope','Roboto',sans-serif", fontWeight: "600", fontSize: ".85rem", cursor: "pointer",
 });
@@ -158,10 +158,10 @@ export function ProfilePage() {
               : <div className="profile-avatar-placeholder" style={{ background: "#3E91C4", width: "72px", height: "72px", fontSize: "1.4rem", border: "3px solid white" }}>{name[0]?.toUpperCase()}</div>}
           </div>
           <div className="profile-name" style={{ fontWeight: "700", fontSize: "1.4rem", color: "var(--on-surface)" }}>{name}</div>
-          <div className="profile-location" style={{ fontSize: ".83rem", color: "#8c7071", margin: ".2rem 0 .4rem" }}>
+          <div className="profile-location" style={{ fontSize: ".83rem", color: "var(--profile-muted, #8c7071)", margin: ".2rem 0 .4rem" }}>
             📍 {store?.region ?? user.city ?? "Azərbaycan"} · {isSeller ? "Satıcı" : "Alıcı"}{user.role === "ADMIN" ? " · Admin" : ""}
           </div>
-          {(store?.bio ?? user.bio) && <div className="profile-bio" style={{ fontSize: ".88rem", color: "#584142", marginBottom: ".9rem" }}>{store?.bio ?? user.bio}</div>}
+          {(store?.bio ?? user.bio) && <div className="profile-bio" style={{ fontSize: ".88rem", color: "var(--profile-bio, #584142)", marginBottom: ".9rem" }}>{store?.bio ?? user.bio}</div>}
           <div className="profile-actions" style={{ display: "flex", gap: ".55rem", flexWrap: "wrap", marginBottom: "1rem" }}>
             <Link href="/settings" style={{ ...btn(true), display: "inline-flex", alignItems: "center", justifyContent: "center", textDecoration: "none" }}>Düzəliş et</Link>
             {isSeller
@@ -176,7 +176,7 @@ export function ProfilePage() {
             <div style={{ width: "46px", height: "46px", borderRadius: "12px", background: "#ffeef0", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: "0", fontSize: "1.3rem" }}>🏪</div>
             <div className="open-store-text" style={{ flex: "1", minWidth: "0" }}>
               <h4 style={{ fontWeight: "700", fontSize: ".88rem", color: "#3E91C4", marginBottom: ".18rem" }}>Yaradıcılığını gəlirə çevir!</h4>
-              <p style={{ fontSize: ".78rem", color: "#8c7071", lineHeight: "1.4" }}>Cəmi 2 dəqiqədə öz onlayn mağazanı yarat və satışa başla.</p>
+              <p style={{ fontSize: ".78rem", color: "var(--profile-muted, #8c7071)", lineHeight: "1.4" }}>Cəmi 2 dəqiqədə öz onlayn mağazanı yarat və satışa başla.</p>
             </div>
             <button style={{ background: "#3E91C4", color: "#fff", border: "none", borderRadius: "50px", padding: ".5rem .9rem", fontFamily: "'Manrope','Roboto',sans-serif", fontWeight: "600", fontSize: ".78rem", cursor: "pointer", flexShrink: "0", whiteSpace: "nowrap" }} onClick={openStore}>Mağaza Aç</button>
           </div>
@@ -217,7 +217,7 @@ export function ProfilePage() {
                       {p.status === "DRAFT"
                         ? <button style={smallBtn} onClick={() => setListingStatus(p, "PUBLISHED")}>Dərc et</button>
                         : <button style={smallBtn} onClick={() => setListingStatus(p, "DRAFT")}>Gizlət</button>}
-                      <button style={{ ...smallBtn, color: "#ba1a1a" }} onClick={() => removeListing(p)}>Sil</button>
+                      <button style={{ ...smallBtn, color: "var(--danger-text, #ba1a1a)" }} onClick={() => removeListing(p)}>Sil</button>
                     </div>
                   </div>
                 ))}
@@ -299,7 +299,7 @@ function DemoProfile() {
             <div className="profile-avatar-placeholder" style={{ background: "#3E91C4", width: "72px", height: "72px", fontSize: "1.4rem", border: "3px solid white" }}>D</div>
           </div>
           <div className="profile-name" style={{ fontWeight: "700", fontSize: "1.4rem" }}>Demo profil</div>
-          <div className="profile-location" style={{ fontSize: ".83rem", color: "#8c7071", margin: ".2rem 0 .9rem" }}>Server qoşulmayıb: məlumatlar nümunədir</div>
+          <div className="profile-location" style={{ fontSize: ".83rem", color: "var(--profile-muted, #8c7071)", margin: ".2rem 0 .9rem" }}>Server qoşulmayıb: məlumatlar nümunədir</div>
           <div className="profile-actions" style={{ display: "flex", gap: ".55rem", flexWrap: "wrap", marginBottom: "1rem" }}>
             <Link href="/settings" style={{ ...btn(true), display: "inline-flex", alignItems: "center", justifyContent: "center", textDecoration: "none" }}>Düzəliş et</Link>
             <button style={btn(false)} onClick={shareProfile}>Profili paylaş</button>

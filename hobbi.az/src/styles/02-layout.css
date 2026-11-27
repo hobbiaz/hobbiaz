@@ -75,7 +75,8 @@
   --surface-nav-bar:rgba(24,24,24,.97);
   --on-surface:#ececec;
   --on-surface-var:#a0a8a4;
-  --outline:#5a6a64;
+  --outline:#8a9893; /* was #5a6a64: muted text was below 3:1 on the dark surface */
+  --danger-text:#ff8a80;
   --outline-var:#2a3530;
   --primary-container:#2e201a;
   --shadow-sm:0 1px 4px rgba(0,0,0,.4),0 4px 12px rgba(0,0,0,.3);
@@ -91,7 +92,8 @@
   --surface-nav-bar:rgba(24,24,24,.97);
   --on-surface:#ececec;
   --on-surface-var:#a0a8a4;
-  --outline:#5a6a64;
+  --outline:#8a9893; /* was #5a6a64: muted text was below 3:1 on the dark surface */
+  --danger-text:#ff8a80;
   --outline-var:#352f2a;
   --primary-container:#2e241a;
   --shadow-sm:0 1px 4px rgba(0,0,0,.4),0 4px 12px rgba(0,0,0,.3);
@@ -531,11 +533,11 @@
   }
 }
 [data-theme="dark"] .filter-tab.active{
-  color:var(--primary);
+  color:#fff; /* was the same colour as its background */
 }
 @media(prefers-color-scheme:dark){
   [data-theme="auto"] .filter-tab.active{
-  color:var(--primary);
+  color:#fff; /* was the same colour as its background */
   }
 }
 [data-theme="dark"] .convo-avatar-placeholder{

@@ -258,8 +258,8 @@ export function ListingModal() {
                       <div className="listing-drop-sub">Max 30 san, MP4 formatı</div>
                     </div>
                     <div className="listing-video-aside">
-                      <div style={{ width: "48px", height: "80px", border: "2px solid #D1D5DB", borderRadius: "6px", position: "relative", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                        <div style={{ position: "absolute", top: "-4px", width: "16px", height: "2px", background: "#D1D5DB", borderRadius: "2px" }}></div>
+                      <div style={{ width: "48px", height: "80px", border: "2px solid var(--lm-line, #D1D5DB)", borderRadius: "6px", position: "relative", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        <div style={{ position: "absolute", top: "-4px", width: "16px", height: "2px", background: "var(--lm-line, #D1D5DB)", borderRadius: "2px" }}></div>
                         <IconListingVideoAside />
                       </div>
                       <p>Video şaquli istiqamətdə çəkilmiş 9:16 nisbətdə olmalıdır.</p>
@@ -269,7 +269,7 @@ export function ListingModal() {
                 <div className="listing-tips-card listing-tag-tip" style={{ margin: "0" }}>
                   <IconListingTipsCard />
                   <div>
-                    <p style={{ margin: "0 0 .75rem", color: "#1E40AF", fontSize: ".8125rem", lineHeight: "1.5" }}>Keyfiyyətli şəkillər satışı sürətləndirir! Şəkilləri təbii işıq altında, təmiz arxa fon qarşısında çəkməyə çalışın.</p>
+                    <p style={{ margin: "0 0 .75rem", color: "var(--lm-tip-text, #1E40AF)", fontSize: ".8125rem", lineHeight: "1.5" }}>Keyfiyyətli şəkillər satışı sürətləndirir! Şəkilləri təbii işıq altında, təmiz arxa fon qarşısında çəkməyə çalışın.</p>
                     <ul className="listing-tips-list">
                       <li><IconGunduzIsigindanIstifadeEdin />Gündüz işığından istifadə edin</li>
                       <li><IconGunduzIsigindanIstifadeEdin />Fokusun məhsulda olduğuna əmin olun</li>
@@ -353,9 +353,9 @@ export function ListingModal() {
                 <div>
                   <div style={{ display: "flex", alignItems: "center", gap: ".35rem", marginBottom: ".35rem" }}>
                     <IconSekillerleUygunluq />
-                    <span style={{ fontSize: ".75rem", fontWeight: "700", letterSpacing: ".05em", color: "#1D4ED8" }}>ŞƏKİLLƏRLƏ UYĞUNLUQ</span>
+                    <span style={{ fontSize: ".75rem", fontWeight: "700", letterSpacing: ".05em", color: "var(--lm-tip-title, #1D4ED8)" }}>ŞƏKİLLƏRLƏ UYĞUNLUQ</span>
                   </div>
-                  <p style={{ margin: "0", fontSize: ".8125rem", color: "#374151", lineHeight: "1.5" }}>Daxil etdiyiniz başlıq yüklədiyiniz şəkillərdəki məhsulu tam əks etdirməlidir. Bu, müştərilərin məhsulunuzu daha rahat tapmasına kömək edir.</p>
+                  <p style={{ margin: "0", fontSize: ".8125rem", color: "var(--lm-text, #374151)", lineHeight: "1.5" }}>Daxil etdiyiniz başlıq yüklədiyiniz şəkillərdəki məhsulu tam əks etdirməlidir. Bu, müştərilərin məhsulunuzu daha rahat tapmasına kömək edir.</p>
                 </div>
               </div>
             </div>
