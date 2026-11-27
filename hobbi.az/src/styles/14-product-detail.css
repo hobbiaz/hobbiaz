@@ -808,8 +808,9 @@
 }
 
 /* ── DARK MODE FIXES ── */
-[data-theme="dark"] .pd-ad-card,
-[data-theme="auto"] .pd-ad-card {
+/* "auto" only inside the media query below: outside it the card turned dark on light systems too,
+   hiding its dark title. */
+[data-theme="dark"] .pd-ad-card {
   background: #1e1e1e;
 }
 @media(prefers-color-scheme:dark) {
