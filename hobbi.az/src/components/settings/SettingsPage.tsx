@@ -190,8 +190,8 @@ export function SettingsPage() {
       {/* Left sidebar */}
       <div className="sp-desk-sidebar">
         <div className="sp-desk-sidebar-head">
-          <div className="sp-desk-sidebar-avatar">O</div>
-          <div className="sp-desk-sidebar-name">Orxan Məmmədov</div>
+          <div className="sp-desk-sidebar-avatar">{(user?.store?.name ?? user?.name ?? "Q")[0]?.toUpperCase()}</div>
+          <div className="sp-desk-sidebar-name">{user?.store?.name ?? user?.name ?? "Qonaq"}</div>
           <div className="sp-desk-sidebar-sub">Parametrləri idarə et</div>
         </div>
         <div {...pressable} className={navCls("account")} data-section="account" onClick={() => switchSection("account")}>
@@ -526,10 +526,10 @@ export function SettingsPage() {
         <span className="sub-panel-title">Hesab məlumatlarım</span>
       </div>
       <div className="sub-panel-body">
-        <div className="l-field"><label className="l-label">Ad Soyad</label><input className="l-input" defaultValue="Orxan Məmmədov" /></div>
-        <div className="l-field"><label className="l-label">E-poçt</label><input className="l-input" type="email" defaultValue="orxan@example.com" /></div>
-        <div className="l-field"><label className="l-label">Telefon</label><input className="l-input" type="tel" defaultValue="+994 50 xxx xx xx" /></div>
-        <div className="l-field"><label className="l-label">Bio</label><textarea className="l-textarea">Keramika həvəskarı. Hər bir əsər bir hekayə danışır. ✨</textarea></div>
+        <div className="l-field"><label className="l-label">Ad Soyad</label><input className="l-input" defaultValue={user?.name ?? ""} key={`n-${user?.id}`} /></div>
+        <div className="l-field"><label className="l-label">E-poçt</label><input className="l-input" type="email" defaultValue={user?.email ?? ""} key={`e-${user?.id}`} /></div>
+        <div className="l-field"><label className="l-label">Telefon</label><input className="l-input" type="tel" defaultValue={user?.phone ?? ""} key={`p-${user?.id}`} placeholder="+994 50 xxx xx xx" /></div>
+        <div className="l-field"><label className="l-label">Bio</label><textarea className="l-textarea" defaultValue={user?.bio ?? ""} key={`b-${user?.id}`} /></div>
         <button className="btn-publish" style={{ width: "100%", marginTop: ".5rem" }} onClick={() => toast("Məlumatlar yadda saxlandı ✅")}>Yadda saxla</button>
       </div>
     </div>
